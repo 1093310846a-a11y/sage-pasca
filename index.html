@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌱 小苏 · 高中生物苏格拉底式伴学</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 50%, #80deea 100%);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  .header {
+    background: linear-gradient(135deg, #00897b, #00acc1);
+    color: white;
+    padding: 40px 30px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 150, 136, 0.2);
+    margin-bottom: 24px;
+  }
+  .header h1 { font-size: 36px; margin-bottom: 12px; }
+  .header p { font-size: 16px; opacity: 0.9; line-height: 1.6; }
+  .countdown {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 24px;
+    display: inline-block;
+  }
+  .countdown-days { font-size: 56px; font-weight: 700; line-height: 1; }
+  .countdown-label { font-size: 13px; opacity: 0.9; margin-top: 6px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border: 2px solid transparent;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 150, 136, 0.2);
+    border-color: #00897b;
+  }
+  .card-icon { font-size: 56px; margin-bottom: 12px; }
+  .card-title { font-size: 20px; font-weight: 600; color: #00695c; margin-bottom: 8px; }
+  .card-desc { color: #666; font-size: 14px; line-height: 1.5; }
+  .card-cta { color: #00897b; font-size: 13px; margin-top: 12px; font-weight: 600; }
+  .footer {
+    text-align: center;
+    color: #00695c;
+    font-size: 13px;
+    padding: 20px;
+  }
+  .footer a { color: #00897b; text-decoration: none; font-weight: 600; }
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🌱 小苏 · 高中生物</h1>
+    <p>苏格拉底式伴学 · 启发式提问 · 不给答案只给方向</p>
+    <div class="countdown">
+      <div class="countdown-days" id="countdown">--</div>
+      <div class="countdown-label">天 · 距离 2027 高考</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <a class="card" href="daily-tips.html">
+      <div class="card-icon">📅</div>
+      <div class="card-title">每日生物贴士</div>
+      <div class="card-desc">每天一条新贴士，把高中生物掰开了揉碎了</div>
+      <div class="card-cta">点此打开 →</div>
+    </a>
+
+    <a class="card" href="https://balla-mcp-server.onrender.com/exam_point_card" target="_blank">
+      <div class="card-icon">🎯</div>
+      <div class="card-title">高考考点速记</div>
+      <div class="card-desc">6 个核心考点 + 倒计时 + 复习口诀</div>
+      <div class="card-cta">查看 JSON →</div>
+    </a>
+  </div>
+
+  <div class="footer">
+    📌 数据存储在 Render 后端 ·
+    💬 小苏 Agent 在超星平台运行 ·
+    🛠️ <a href="https://github.com/1093310846a-a11y/sage-pasca" target="_blank">查看源码</a>
+  </div>
+</div>
+
+<script>
+const GAOKAO_DATE = new Date('2027-06-07');
+const today = new Date();
+const daysLeft = Math.max(0, Math.ceil((GAOKAO_DATE - today) / (1000 * 60 * 60 * 24)));
+document.getElementById('countdown').textContent = daysLeft;
+</script>
+</body>
+</html>
