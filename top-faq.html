@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>小苏 · 高中生物常问</title>
+<link rel="icon" href="data:,">
+<!--
+  超星「顶部标签」iframe · 小苏高中生物常问  v0
+  - 无对话框，只做"常见生物问题"组织 + 点开解答
+  - 解答自带【自生成脑图 SVG】【一图流海报】【生成讲义PPT】
+  - 偏简约、不花哨，但内容要给足
+  - 全站只有高中生物内容
+  - 数据为内置静态（含1张自产海报）；后续可换成 /daily_panel 等后端字段
+-->
+<style>
+  :root{
+    --pk:#4B7BFF; --pk-d:#3B63D8; --pk-soft:#EEF2FF; --pk-soft2:#E4E9FF;
+    --ink:#1A1D2E; --ink2:#5A6072; --ink3:#A8AEBE;
+    --bg:#EEF0F7; --card:#fff; --line:rgba(15,23,42,.08);
+    --green:#22C55E; --amber:#F59E0B; --red:#EF4444;
+    --r:16px; --shadow:0 2px 12px rgba(15,23,42,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+    color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.6}
+  .page{max-width:1180px;margin:0 auto;padding:22px 22px 34px}
+
+  /* hero（极简白卡） */
+  .hero{display:flex;align-items:center;gap:14px;background:var(--card);
+    border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;
+    box-shadow:var(--shadow)}
+  .hero .av{flex:none;width:42px;height:42px;border-radius:13px;background:var(--pk-soft);color:var(--pk);
+    display:grid;place-items:center;font-size:20px}
+  .hero .hi{flex:1;min-width:0}
+  .hero h1{font-size:16px;font-weight:600;letter-spacing:.1px;color:var(--ink)}
+  .hero p{font-size:12px;color:var(--ink2);margin-top:2px}
+  .hero .stat{flex:none;text-align:right;font-size:11.5px;color:var(--ink3)}
+  .hero .stat b{display:block;font-size:17px;font-weight:700;color:var(--pk);font-variant-numeric:tabular-nums}
+
+  .wrap{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:18px;margin-top:18px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    box-shadow:var(--shadow);padding:18px 20px}
+  .card-h{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+  .card-h .t{font-size:13px;font-weight:600;color:var(--ink2);letter-spacing:.3px}
+  .card-h .note{font-size:11px;color:var(--ink3);margin-left:auto}
+
+  /* category tabs：下划线极简 */
+  .cats{display:flex;gap:20px;margin:6px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}
+  .cat{background:none;border:none;border-bottom:2px solid transparent;color:var(--ink3);
+    font-size:13px;padding:9px 1px 8px;cursor:pointer;font-family:inherit;transition:.16s;
+    white-space:nowrap;letter-spacing:.2px}
+  .cat:hover{color:var(--ink)}
+  .cat.on{color:var(--pk);border-bottom-color:var(--pk);font-weight:600}
+
+  /* faq rows */
+  .q{list-style:none}
+  .q>li{border-bottom:1px solid var(--line)}
+  .q>li:last-child{border-bottom:none}
+  .qrow{display:flex;align-items:center;gap:10px;padding:12px 4px;cursor:pointer;transition:background .14s;border-radius:8px}
+  .qrow:hover{background:#F7F8FA}
+  .qrow .badge{flex:none;font-size:10.5px;padding:2px 8px;border-radius:5px;background:none;
+    color:var(--ink3);border:1px solid var(--line);font-weight:500;letter-spacing:.3px}
+  .qrow .badge.hot{color:var(--pk);border-color:rgba(75,123,255,.4);font-weight:600}
+  .qrow .label{flex:1;font-size:13.5px;color:var(--ink)}
+  .qrow .arr{color:#C6D0DB;font-size:13px;transition:transform .2s}
+  .q>li.open .qrow .arr{transform:rotate(90deg);color:var(--pk)}
+  .ans{display:none;padding:2px 4px 16px 4px}
+  .q>li.open .ans{display:block;animation:in .22s ease}
+  @keyframes in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+  .ans .intro{font-size:12.5px;color:var(--ink2);background:#F7F8FA;border:none;
+    border-radius:8px;padding:10px 12px;line-height:1.7}
+  .ans .pts{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+  .ans .pt{display:flex;gap:9px;font-size:13px;line-height:1.65;color:var(--ink)}
+  .ans .pt b{flex:none;color:var(--pk-d);font-weight:700}
+  .ans .pt .tx{flex:1}
+  .ans .pt .tx em{font-style:normal;color:var(--pk);font-weight:600}
+
+  .map-wrap{margin-top:12px;border:1px solid var(--line);border-radius:11px;overflow:auto;background:#FCFEFF}
+  .map-tit{font-size:12px;font-weight:600;color:var(--ink2);padding:8px 12px 0}
+  .map-wrap svg{display:block;margin:0 auto;max-width:100%;height:auto}
+  .ask-back{margin-top:11px;padding:9px 2px 0;border-top:1px dashed var(--line);
+    font-size:12.5px;color:var(--pk-d);line-height:1.7}
+
+  .act{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .btn{cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;
+    padding:6px 12px;border-radius:8px;background:#fff;border:1px solid var(--line);
+    color:var(--ink2);transition:.15s}
+  .btn:hover{border-color:var(--pk);color:var(--pk)}
+  .btn.ghost{color:var(--ink2)}
+
+  /* right column */
+  .poster-card .ph{width:100%;border-radius:11px;cursor:pointer;border:1px solid var(--line);display:block}
+  .poster-cap{font-size:11.5px;color:var(--ink3);margin-top:6px;text-align:center}
+  .hot li{list-style:none;display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .hot li:last-child{border-bottom:none}
+  .hot .nm{flex:1;min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hot .bar{width:46px;height:6px;border-radius:3px;background:#E8EEF6;overflow:hidden;flex:none}
+  .hot .bar i{display:block;height:100%;border-radius:3px}
+  .hot .num{flex:none;font-size:11px;color:var(--ink3)}
+
+  /* modal */
+  .mk{position:fixed;inset:0;background:rgba(23,32,50,.55);z-index:60;display:none;align-items:center;
+    justify-content:center;padding:24px}
+  .mk.on{display:flex}
+  .mk-card{background:#fff;border-radius:16px;max-width:min(560px,92vw);max-height:88vh;overflow:auto;padding:16px 18px}
+  .mk-card h3{font-size:14px;margin-bottom:10px;padding-right:24px;font-weight:600}
+  .mk-card img{width:auto;height:auto;max-width:100%;max-height:62vh;margin:0 auto;display:block;
+    border:1px solid var(--line);border-radius:8px}
+  .mk-x{position:fixed;right:26px;top:24px;font-size:26px;color:#fff;cursor:pointer;z-index:61}
+  .mk .foot{margin-top:10px;display:flex;justify-content:space-between;align-items:center}
+  .mk .tag-line{font-size:12px;color:var(--ink3)}
+
+  .foot{margin-top:18px;text-align:center;font-size:11.5px;color:var(--ink3)}
+  @media (max-width:860px){.wrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- hero -->
+  <section class="hero">
+    <div class="av">🌱</div>
+    <div class="hi">
+      <h1>嗨，我是小苏 · 你的高中生物学习搭子</h1>
+      <p>不直接喂答案，陪你一步步想明白 —— 挑一个想问的，点开看。</p>
+    </div>
+    <div class="stat">距 2027 高考<b id="cd" style="display:none"></b></div>
+  </section>
+
+  <div class="wrap">
+    <!-- 左：常见生物问题 -->
+    <section class="card">
+      <div class="card-h"><span class="t">常见生物问题</span>
+        <span class="note">点开问题 → 有思路 · 有脑图 · 可导出讲义</span></div>
+
+      <div class="cats" id="cats"></div>
+      <ul class="q" id="qList"></ul>
+    </section>
+
+    <!-- 右：一图流 + 高频考点 -->
+    <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+      <section class="card poster-card">
+        <div class="card-h"><span class="t">今日一图流</span>
+          <span class="note">细胞呼吸</span></div>
+        <img class="ph" src="posters/有氧呼吸一图流.png" alt="有氧呼吸一图流"
+             onclick="openPoster('posters/有氧呼吸一图流.png','有氧呼吸 · 一图流','posters/有氧呼吸一图流.png')">
+        <div class="poster-cap">点图放大 · 右击可存图</div>
+      </section>
+
+      <section class="card">
+        <div class="card-h"><span class="t">本周高频考点</span>
+          <span class="note">近 5 年</span></div>
+        <ul class="hot" id="hot"></ul>
+      </section>
+    </div>
+  </div>
+
+  <div class="foot">小苏 · 苏格拉底式伴学 —— 给的永远是思路，不是标准答案</div>
+</div>
+
+<!-- 一图流 / 讲义 弹窗 -->
+<div class="mk" id="mk">
+  <span class="mk-x" onclick="closeMk()">×</span>
+  <div class="mk-card">
+    <h3 id="mkT"></h3>
+    <div id="mkB"></div>
+  </div>
+</div>
+
+<script>
+/* ============ 数据（全部为高中生物，静态内置） ============ */
+var FAQ_CATS = [
+{ key:"energy", label:"细胞能量代谢", items:[
+  { q:"有氧呼吸三阶段的场所分别在哪儿？", badge:"高频",
+    intro:"这是把整个细胞呼吸串起来的那把钥匙。记错场所，后面所有题都会跟着错。",
+    pts:[
+      ["第①阶·细胞质基质","葡萄糖被分解成 2 分子丙酮酸，产生少量 [H] 和少量能量。"],
+      ["第②阶·线粒体基质","丙酮酸 + H₂O → CO₂ + [H]，只产少量能量（有氧的 CO₂ 就出在这一步）。"],
+      ["第③阶·线粒体内膜","大量 [H] 与 O₂ 结合生成水，释放大量能量 —— 产能大头在这里。"],
+      ["一句话记忆","一『质』二『基』三『膜』，越往后能量越多。"]
+    ],
+    map:{n:"有氧呼吸", c:[
+      {n:"场所三连", c:[{n:"①细胞质基质"},{n:"②线粒体基质"},{n:"③线粒体内膜"}]},
+      {n:"关键物", c:[{n:"葡萄糖→丙酮酸"},{n:"[H] + O₂→H₂O"}]},
+      {n:"能量", c:[{n:"①②少量"},{n:"③大量"}]}
+    ]},
+    ask:"把三个阶段的场所默写一遍，再口头讲一遍『为什么第三阶段能量最多』，能讲顺就真懂了。",
+    poster:"posters/有氧呼吸一图流.png"
+  },
+  { q:"光反应和暗反应总是搞混，怎么办？", badge:"高频",
+    intro:"别按名字理解：『暗反应』不是指在黑暗里进行，而是指它不直接需要光。",
+    pts:[
+      ["位置分开记","光反应在叶绿体类囊体薄膜，暗反应在叶绿体基质。"],
+      ["谁给谁供能","光反应产生 [H](NADPH) 和 ATP，专门送给暗反应去还原 C₃。"],
+      ["理解名字的坑","暗反应不直接需要光，但需要光反应的产物 —— 所以光照一停，暗反应很快也会停。"],
+      ["口诀","光在『膜』上产 ATP，暗在『基质』里用 ATP。"]
+    ],
+    map:{n:"光合作用", c:[
+      {n:"光反应", c:[{n:"类囊体薄膜"},{n:"产 [H]+ATP"}]},
+      {n:"暗反应", c:[{n:"叶绿体基质"},{n:"耗 [H]+ATP → C₃还原"}]},
+      {n:"关系", c:[{n:"无光反应则无暗反应"}]}
+    ]},
+    ask:"如果突然断电（光照没了），暗反应是立刻停、还是先撑一会儿？说说你的判断依据。"
+  },
+  { q:"净光合和总光合的曲线题总看错？", badge:"易错",
+    intro:"先分清三个点，图就基本会读了：呼吸点、光补偿点、光饱和点。",
+    pts:[
+      ["呼吸点(无光时)","纵轴是负的 = 呼吸在消耗，只考呼吸速率。"],
+      ["补偿点","净光合 = 0：光合速率刚好抵掉呼吸（曲线与横轴交点）。"],
+      ["饱和点","平台期起点：光照再强，光合不再增加。"],
+      ["铁律公式","总光合 = 净光合 + 呼吸；算『制造的有机物』用总，算『积累的』用净。"]
+    ],
+    map:{n:"光合曲线", c:[
+      {n:"读三个点", c:[{n:"呼吸点"},{n:"补偿点"},{n:"饱和点"}]},
+      {n:"两个公式", c:[{n:"总=净+呼吸"},{n:"制造用总/积累用净"}]}
+    ]},
+    ask:"一条光合曲线放到你面前，先说清楚『哪一段代表呼吸』、『哪个点光合=呼吸』，再往下算。"
+  }
+]},
+{ key:"gene", label:"遗传与细胞分裂", items:[
+  { q:"分离定律和自由组合定律到底差在哪？", badge:"高频",
+    intro:"一句话：分离管『一对基因』，自由组合管『两对及以上的非等位基因』。",
+    pts:[
+      ["分离定律","一对等位基因在减数分裂时随同源染色体分开 → 配子 1:1，自交 3:1。"],
+      ["自由组合定律","两对非等位基因位于非同源染色体上，减数分裂时自由组合 → 9:3:3:1。"],
+      ["共同前提","都发生在减数分裂形成配子的过程里，不是受精过程。"],
+      ["防坑","若两对基因在同一条染色体上（连锁），就不符合 9:3:3:1 —— 题干常在这里挖坑。"]
+    ],
+    map:{n:"两大定律", c:[
+      {n:"分离定律", c:[{n:"1 对等位基因"},{n:"配子1:1 / 自交3:1"}]},
+      {n:"自由组合", c:[{n:"≥2 对非等位"},{n:"非同源染色体"},{n:"9:3:3:1"}]},
+      {n:"时间", c:[{n:"减数分裂"},{n:"不是受精"}]}
+    ]},
+    ask:"AaBb 自交为什么是 9:3:3:1？如果两对基因在同一条染色体上还会是这比例吗？"
+  },
+  { q:"有丝分裂和减数分裂的图像怎么一眼分开？", badge:"易错",
+    intro:"别死记『几期几个特征』，先看三样东西：有没有同源染色体、有没有联会/分离、染色体数奇偶。",
+    pts:[
+      ["第一步·找同源","先看有没有形态大小相同的一对一对的染色体（同源染色体）。"],
+      ["第二步·看行为","有『联会/四分体』或『同源分开』→ 一定是减数分裂；着丝粒分裂、单体分开 → 有丝或减Ⅱ。"],
+      ["第三步·数染色体","染色体数是奇数 → 必是减Ⅱ（已减半）；是偶数再看有无同源。"],
+      ["结论一句话","减Ⅰ看『同源分开』，减Ⅱ看『单体分开且无同源』。"]
+    ],
+    map:{n:"图像区分", c:[
+      {n:"找同源", c:[{n:"有/无"}]},
+      {n:"看行为", c:[{n:"联会·同源分开→减"},{n:"着丝粒分裂→有丝/减Ⅱ"}]},
+      {n:"数染色体", c:[{n:"奇数→减Ⅱ"},{n:"偶数→再判同源"}]}
+    ]},
+    ask:"给你一张图，按『同源 → 行为 → 数目』三步讲一遍，为什么它是有丝还是减数。"
+  },
+  { q:"遗传概率题（两对基因）老是算错，有什么稳的方法？", badge:"方法",
+    intro:"别硬套比例，用『分解组合法』：一对一对算，再相乘。",
+    pts:[
+      ["分解","把 AaBb 拆成 Aa 和 Bb 两对，分别算。"],
+      ["算单对","Aa×Aa → 显:隐 = 3:1，基因型 1:2:1；Bb 同理。"],
+      ["组合","要求 A_B_ → (3/4)×(3/4)=9/16；A_bb → (3/4)×(1/4)=3/16。"],
+      ["防坑","看清问『表现型』还是『基因型』，是『自交』还是『自由交配/测交』。"]
+    ],
+    map:{n:"概率题", c:[
+      {n:"分解", c:[{n:"AaBb→Aa & Bb"}]},
+      {n:"单对", c:[{n:"3:1 / 1:2:1"}]},
+      {n:"相乘", c:[{n:"分步概率连乘"}]}
+    ]},
+    ask:"AaBb × AaBb 里 aabb 占多少？先用分解组合写算式，再口算给我听。"
+  }
+]},
+{ key:"dna", label:"DNA 与基因", items:[
+  { q:"DNA 复制有哪些特点？碱基计算怎么破？", badge:"高频",
+    intro:"复制是『半保留』，理解这一点，所有碱基题都能用『互补配对 + 指数』秒掉。",
+    pts:[
+      ["三个特点","半保留复制、边解旋边复制、碱基互补配对（A-T、G-C）。"],
+      ["数量铁律","A=T、G=C；一条链的 A+G 比例另一条链用互补反推。"],
+      ["复制 n 次","某碱基 X 个，复制 n 次需该碱基 (2ⁿ−1)·X 个。"],
+      ["防坑","『复制了 n 次』和『第 n 次复制』算法不同，前者 2ⁿ，后者 2ⁿ⁻¹ 新增那一批。"]
+    ],
+    map:{n:"DNA复制", c:[
+      {n:"特点", c:[{n:"半保留"},{n:"边解旋边复制"}]},
+      {n:"配对", c:[{n:"A-T / G-C"}]},
+      {n:"计算", c:[{n:"(2ⁿ−1)·X"},{n:"第n次=2ⁿ⁻¹份"}]}
+    ]},
+    ask:"一个 DNA 复制 3 次，总共有多少个 DNA 分子？其中含最初那条母链的有几个？"
+  },
+  { q:"基因、DNA、染色体三者到底是什么关系？", badge:"基础",
+    intro:"把范围关系理顺：染色体 ⊃ DNA ⊃ 基因，别再把它们当成平级的东西。",
+    pts:[
+      ["基因是什么","有遗传效应的 DNA 片段，是控制性状的基本单位。"],
+      ["基因≠整条DNA","DNA 上有很多片段，其中能编码的片段才是基因。"],
+      ["染色体是载体","基因在染色体上呈线性排列，染色体是基因的主要载体（线粒体/叶绿体也有少量）。"],
+      ["遗传信息","藏在 DNA 的碱基（脱氧核苷酸）排列顺序里。"]
+    ],
+    map:{n:"层次关系", c:[
+      {n:"染色体", c:[{n:"主要载体"}]},
+      {n:"DNA", c:[{n:"双螺旋·携带碱基序列"}]},
+      {n:"基因", c:[{n:"有遗传效应片段"}]}
+    ]},
+    ask:"『基因就是 DNA』这句话错在哪？能用一个包含关系的图讲给我听吗？"
+  },
+  { q:"中心法则：转录和翻译总在哪儿进行？", badge:"易错",
+    intro:"顺着『DNA → RNA → 蛋白质』这条线，把『场所、模板、产物』钉死就不混。",
+    pts:[
+      ["转录","以 DNA 一条链为模板，在细胞核（线粒体/叶绿体也可）合成 mRNA。"],
+      ["翻译","以 mRNA 为模板，在细胞质中的核糖体上合成多肽（蛋白质）。"],
+      ["tRNA 干什么","搬运氨基酸，反密码子与 mRNA 上的密码子互补配对。"],
+      ["防坑","不是所有 RNA 都做信使：mRNA 传信、tRNA 搬运、rRNA 是核糖体成分。"]
+    ],
+    map:{n:"中心法则", c:[
+      {n:"DNA", c:[{n:"转录(核)→mRNA"}]},
+      {n:"mRNA", c:[{n:"翻译(核糖体)→蛋白质"}]},
+      {n:"tRNA", c:[{n:"搬运氨基酸"}]}
+    ]},
+    ask:"『转录在核糖体上进行』对吗？把三处场所自己标一遍：转录、翻译、tRNA 工作的地方。"
+  }
+]}
+];
+
+var HOT_DATA = [
+  {nm:"光合与呼吸综合", n:15, c:"#4B7BFF"},
+  {nm:"自由组合定律计算", n:14, c:"#6E95FF"},
+  {nm:"有氧呼吸场所判断", n:12, c:"#6E95FF"},
+  {nm:"DNA复制与碱基计算", n:7, c:"#A9C2FF"}
+];
+
+/* ============ 渲染：分类 + 列表 ============ */
+var $=function(id){return document.getElementById(id);};
+var CATS_EL, curCat = FAQ_CATS[0].key;
+
+function renderCats(){
+  var box = $("cats"); box.innerHTML="";
+  FAQ_CATS.forEach(function(c){
+    var b=document.createElement("button");
+    b.className="cat"+(c.key===curCat?" on":"");
+    b.textContent=c.label;
+    b.onclick=function(){ curCat=c.key; renderCats(); renderList(); };
+    box.appendChild(b);
+  });
+}
+function renderList(){
+  var list = $("qList"); list.innerHTML="";
+  var cat = FAQ_CATS.filter(function(c){return c.key===curCat;})[0];
+  cat.items.forEach(function(it){
+    var li=document.createElement("li");
+    var row=document.createElement("div"); row.className="qrow";
+    var badge = it.badge==="高频" ? "hot" : "";
+    row.innerHTML='<span class="badge '+badge+'">'+(it.badge||"基础")+'</span>'+
+      '<span class="label"></span><span class="arr">›</span>';
+    row.querySelector(".label").textContent=it.q;
+    row.onclick=function(){ li.classList.toggle("open"); };
+    var ans=document.createElement("div"); ans.className="ans";
+    li.appendChild(row); li.appendChild(ans); list.appendChild(li);
+
+    var h='';
+    if(it.intro) h+='<div class="intro">'+it.intro+'</div>';
+    h+='<div class="pts">';
+    (it.pts||[]).forEach(function(p){ h+='<div class="pt"><b>·</b><div class="tx">'+
+      (p[0]?'<em>'+p[0]+' ·</em> ':'')+p[1]+'</div></div>'; });
+    h+='</div>';
+    if(it.map) h+='<div class="map-wrap"><div class="map-tit">知识点脑图</div><div class="mm"></div></div>';
+    h+='<div class="ask-back">'+ (it.ask||"讲给同桌听一遍，说不顺的地方就是你的漏洞。") +'</div>';
+    h+='<div class="act">';
+    if(it.poster) h+='<button class="btn" onclick="openPoster(\''+it.poster+'\',\''+it.q.replace(/'/g,"")+' · 一图流\',\''+it.poster+'\')">看一图流</button>';
+    h+='<button class="btn ghost" onclick="makePpt(this,\''+it.q.replace(/'/g,"")+'\','+(it.poster?'1':'0')+')">生成讲义 PPT</button>';
+    h+='</div>';
+    ans.innerHTML=h;
+    if(it.map) drawMindMap(ans.querySelector(".mm"), it.map);
+  });
+}
+renderCats(); renderList();
+
+/* ============ 自生成脑图（纯 SVG，零依赖） ============ */
+function drawMindMap(box, root){
+  var VW=880, PAD=14, rowH=44, nodeW=118, nodeH=30, dx=168, topPad=26;
+  var leaves=0, maxD=0, ymap={}, xmap={}, seq=[];
+  function assign(n,d){
+    n._d=d; if(d>maxD)maxD=d;
+    if(!n.c||!n.c.length){ leaves++; n._leaf=leaves; seq.push(n); }
+    else n.c.forEach(function(ch){ assign(ch,d+1); });
+  }
+  assign(root,0);
+  function calcY(n){
+    if(!n.c||!n.c.length){ n._y = topPad + (n._leaf-1)*rowH; }
+    else { n.c.forEach(calcY); var ys=n.c.map(function(c){return c._y;}); n._y=(Math.min.apply(0,ys)+Math.max.apply(0,ys))/2; }
+  }
+  calcY(root);
+  var H = topPad*2 + (leaves-1)*rowH + nodeH;
+  var W = PAD*2 + (maxD+1)*dx + nodeW*0.6;
+  function xOf(d){ return PAD + d*dx; }
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="width:'+W+'px;max-width:100%">';
+  function drawEdges(n){
+    if(n.c) n.c.forEach(function(ch){
+      var x1=xOf(n._d)+nodeW, y1=n._y+nodeH/2, x2=xOf(ch._d), y2=ch._y+nodeH/2;
+      var mx=(x1+x2)/2;
+      svg+='<path d="M'+x1+' '+y1+' C'+mx+' '+y1+','+mx+' '+y2+','+x2+' '+y2+'" fill="none" stroke="#E0E4F0" stroke-width="1.3"/>';
+      drawEdges(ch);
+    });
+  }
+  drawEdges(root);
+  function drawNode(n){
+    var x=xOf(n._d), y=n._y, fill="#fff", col="#5A6072", sw="1", fc="#E5E8F2";
+    if(n===root){ fill="#4B7BFF"; col="#fff"; sw="0"; fc="none"; }
+    else if(!n.c||!n.c.length){ fill="#fff"; col="#3D4456"; }
+    svg+='<rect x="'+x+'" y="'+y+'" width="'+nodeW+'" height="'+nodeH+'" rx="9" fill="'+fill+'" stroke="'+(fc)+'" stroke-width="1"/>';
+    var label = (n.n||"").length>10 ? (n.n).slice(0,9)+"…" : (n.n||"");
+    svg+='<text x="'+(x+nodeW/2)+'" y="'+(y+nodeH/2+4)+'" font-size="12" text-anchor="middle" fill="'+col+'" font-family="inherit">'+esc(label)+'</text>';
+    if(n.c) n.c.forEach(drawNode);
+  }
+  drawNode(root);
+  svg+='</svg>';
+  box.innerHTML=svg;
+}
+function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ============ 一图流弹窗 ============ */
+function openPoster(src, title, full){
+  $("mkT").textContent = title || "一图流";
+  $("mkB").innerHTML = '<img src="'+src+'" alt="海报">'+
+    '<div class="foot"><span class="tag-line">右击图片可保存 PNG · 可用作知识库图片素材</span></div>';
+  $("mk").classList.add("on");
+}
+function closeMk(){ $("mk").classList.remove("on"); }
+$("mk").addEventListener("click", function(e){ if(e.target.id==="mk") closeMk(); });
+
+/* ============ 生成讲义 PPT（自生成，无服务器） ============ */
+function getQ(btn){
+  var li=btn.closest("li"), lab=li?li.querySelector(".qrow .label"):null;
+  return lab?lab.textContent:"";
+}
+function getAsk(btn){
+  var a=btn.closest(".ans"), x=a?a.querySelector(".ask-back"):null;
+  return x?x.innerText:"";
+}
+function getLines(btn){
+  var out=[];
+  var a=btn.closest(".ans");
+  if(a) a.querySelectorAll(".pt").forEach(function(p){
+    var t=p.querySelector(".tx"); if(t) out.push(t.innerText);
+  });
+  return out;
+}
+function makePpt(btn){
+  btn.textContent="⏳ 正在生成…";
+  var q=getQ(btn), lines=getLines(btn), ask=getAsk(btn);
+  function doneDownload(Pptx){
+    try{
+      var pptx=new Pptx();
+      pptx.defineLayout({name:"S",width:10,height:5.63});
+      pptx.layout="S";
+      var s1=pptx.addSlide();
+      s1.background={color:"FFFFFF"};
+      s1.addText(q,{x:0.5,y:0.35,w:9,h:0.9,fontSize:20,bold:true,color:"1F2937"});
+      s1.addShape(pptx.ShapeType.rect,{x:0.5,y:1.28,w:1.3,h:0.05,fill:{color:"2B7DE9"}});
+      var y=1.55;
+      lines.slice(0,6).forEach(function(t){
+        s1.addText("• "+t,{x:0.55,y:y,w:8.9,h:0.8,fontSize:13,color:"334155",valign:"top"});
+        y+=0.72;
+      });
+      s1.addText("小苏 · 苏格拉底式伴学 · 高中生物",{x:0.5,y:5.05,w:9,h:0.35,fontSize:9,color:"98A2B3",align:"right"});
+      var s2=pptx.addSlide();
+      s2.background={color:"F4F8FD"};
+      s2.addText("把这个点讲给同桌听",{x:0.5,y:0.4,w:9,h:0.7,fontSize:16,bold:true,color:"1E5BC6"});
+      s2.addText(ask||" ",{x:0.5,y:1.1,w:9,h:3.2,fontSize:13,color:"334155",valign:"top"});
+      pptx.writeFile({fileName:"小苏讲义-"+q.slice(0,8)+".pptx"});
+      btn.textContent="📊 已生成，请查收（点此重出）";
+    }catch(e){ btn.textContent="📊 生成失败，改用预览"; showSlideFallback(btn); }
+  }
+  ensurePptx(doneDownload, function(){ btn.textContent="📊 离线模式 · 讲义预览"; showSlideFallback(btn); });
+}
+function showSlideFallback(btn){
+  var q=getQ(btn), lines=getLines(btn);
+  var html='<div style="background:#F4F8FD;border-radius:12px;padding:20px;aspect-ratio:16/9">'+
+    '<div style="font-size:18px;font-weight:700;color:#1F2937">'+esc(q)+'</div>'+
+    '<div style="width:64px;height:5px;background:#2B7DE9;border-radius:3px;margin:12px 0 16px"></div>';
+  lines.forEach(function(t){ html+='<div style="font-size:13px;color:#334155;margin:6px 0">• '+esc(t)+'</div>'; });
+  html+='<div style="margin-top:18px;font-size:10px;color:#98A2B3;text-align:right">小苏 · 苏格拉底式伴学</div></div>'+
+    '<div class="foot"><span class="tag-line">离线演示：这一页即一张「讲义 PPT」，可直接截图。联网后同一按钮会真下载 .pptx 文件。</span></div>';
+  $("mkT").textContent="讲义 · "+q;
+  $("mkB").innerHTML=html;
+  $("mk").classList.add("on");
+}
+function ensurePptx(ok, fail){
+  if(window.pptxgenjs || window.PptxGenJS){ ok(window.pptxgenjs||window.PptxGenJS); return; }
+  var s=document.createElement("script");
+  s.src="https://cdn.jsdelivr.net/npm/pptxgenjs@3/dist/pptxgen.bundle.js";
+  s.onload=function(){ if(window.pptxgenjs){ok(window.pptxgenjs);}else fail(); };
+  s.onerror=fail;
+  document.head.appendChild(s);
+}
+
+/* ============ 右侧高频考点 ============ */
+(function(){
+  var box=$("hot");
+  HOT_DATA.forEach(function(h){
+    var li=document.createElement("li");
+    li.innerHTML='<span class="nm"></span><span class="bar"><i></i></span><span class="num"></span>';
+    li.querySelector(".nm").textContent=h.nm;
+    li.querySelector(".bar i").style.width=Math.round(h.n/15*100)+"%";
+    li.querySelector(".bar i").style.background=h.c;
+    li.querySelector(".num").textContent=h.n+" 次";
+    box.appendChild(li);
+  });
+})();
+
+/* ============ hero：高考倒计时（打通现有后端 /daily_panel，失败则隐藏） ============ */
+(function(){
+  var cd=$("cd");
+  fetch("https://balla-mcp-server.onrender.com/daily_panel").then(function(r){return r.json();}).then(function(d){
+    var v=(d&&d.data&&d.data.countdown_days)||0;
+    if(v){ cd.style.display="inline"; cd.textContent=v+" 天"; }
+  }).catch(function(){});
+})();
+</script>
+</body>
+</html>
