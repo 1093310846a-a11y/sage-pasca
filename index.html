@@ -3,114 +3,391 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🌱 小苏 · 高中生物苏格拉底式伴学</title>
+<title>小苏·高中生物伴学面板</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 50%, #80deea 100%);
-    min-height: 100vh;
-    padding: 20px;
-  }
-  .container { max-width: 900px; margin: 0 auto; }
-  .header {
-    background: linear-gradient(135deg, #00897b, #00acc1);
-    color: white;
-    padding: 40px 30px;
-    border-radius: 20px;
-    text-align: center;
-    box-shadow: 0 8px 24px rgba(0, 150, 136, 0.2);
-    margin-bottom: 24px;
-  }
-  .header h1 { font-size: 36px; margin-bottom: 12px; }
-  .header p { font-size: 16px; opacity: 0.9; line-height: 1.6; }
-  .countdown {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
-    padding: 20px;
-    margin-top: 24px;
-    display: inline-block;
-  }
-  .countdown-days { font-size: 56px; font-weight: 700; line-height: 1; }
-  .countdown-label { font-size: 13px; opacity: 0.9; margin-top: 6px; }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .card {
-    background: white;
-    border-radius: 16px;
-    padding: 32px 24px;
-    text-align: center;
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.3s;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    border: 2px solid transparent;
-  }
-  .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 150, 136, 0.2);
-    border-color: #00897b;
-  }
-  .card-icon { font-size: 56px; margin-bottom: 12px; }
-  .card-title { font-size: 20px; font-weight: 600; color: #00695c; margin-bottom: 8px; }
-  .card-desc { color: #666; font-size: 14px; line-height: 1.5; }
-  .card-cta { color: #00897b; font-size: 13px; margin-top: 12px; font-weight: 600; }
-  .footer {
-    text-align: center;
-    color: #00695c;
-    font-size: 13px;
-    padding: 20px;
-  }
-  .footer a { color: #00897b; text-decoration: none; font-weight: 600; }
-  @media (max-width: 600px) {
-    .grid { grid-template-columns: 1fr; }
-    .header h1 { font-size: 28px; }
-  }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  background: linear-gradient(180deg, #E8F5F1 0%, #F4FAF7 100%);
+  color: #2C3E50;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* === 品牌头 === */
+.brand {
+  background: linear-gradient(135deg, #2EBE9D 0%, #1A8870 100%);
+  color: #fff;
+  padding: 18px 16px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(46, 190, 157, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+.brand::after {
+  content: '';
+  position: absolute;
+  right: -30px; top: -30px;
+  width: 100px; height: 100px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+}
+.brand-title {
+  font-size: 19px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+.brand-subtitle {
+  font-size: 12px;
+  opacity: 0.9;
+  margin-top: 5px;
+  letter-spacing: 0.5px;
+  position: relative;
+}
+
+/* === 顶部数据卡(双列) === */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid #E8F0EC;
+}
+.stat-num {
+  font-size: 30px;
+  font-weight: 800;
+  color: #1A8870;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-label {
+  font-size: 12px;
+  color: #7A8B85;
+  margin-top: 5px;
+}
+
+/* === 通用模块 === */
+.module {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid #E8F0EC;
+}
+.module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.module-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2C3E50;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.module-action {
+  font-size: 12px;
+  color: #1A8870;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* === 考点 2x2 网格 === */
+.exam-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.exam-item {
+  background: #F4FAF7;
+  border-left: 3px solid #2EBE9D;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.exam-item:hover {
+  background: #E0F0EA;
+  transform: translateY(-1px);
+}
+.exam-chapter {
+  font-size: 11px;
+  color: #7A8B85;
+  margin-bottom: 3px;
+}
+.exam-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2C3E50;
+  line-height: 1.3;
+}
+.exam-freq {
+  font-size: 11px;
+  color: #FF6B35;
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+/* === 生物贴士(暖色高亮) === */
+.tip-box {
+  background: linear-gradient(135deg, #FFF7E6 0%, #FFE9C9 100%);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid #FFD79A;
+  position: relative;
+  overflow: hidden;
+}
+.tip-box::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #FF8C42 0%, #F5B82E 100%);
+}
+.tip-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #C56A1D;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 4px;
+}
+.tip-content {
+  font-size: 13px;
+  color: #6B4423;
+  line-height: 1.65;
+  padding-left: 4px;
+}
+
+/* === 功能入口(图2 热门应用风格) === */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.feature-item {
+  text-align: center;
+  padding: 8px 4px;
+  background: #F4FAF7;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.feature-item:hover {
+  background: #E0F0EA;
+  border-color: #B8DDD0;
+  transform: translateY(-1px);
+}
+.feature-icon {
+  font-size: 22px;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+.feature-name {
+  font-size: 11px;
+  color: #2C3E50;
+  font-weight: 500;
+}
+
+/* === 学习数据条 === */
+.learn-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 4px 0;
+}
+.learn-item {
+  text-align: center;
+  padding: 6px;
+  border-right: 1px solid #E8F0EC;
+}
+.learn-item:last-child { border-right: none; }
+.learn-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1A8870;
+  font-variant-numeric: tabular-nums;
+}
+.learn-label {
+  font-size: 11px;
+  color: #7A8B85;
+  margin-top: 2px;
+}
+
+/* === 底部鼓励语 === */
+.motivation-bar {
+  background: linear-gradient(90deg, #2EBE9D 0%, #1A8870 100%);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(46, 190, 157, 0.2);
+  line-height: 1.5;
+}
+
+/* === 错误态 === */
+.error-box {
+  background: #FFF0EE;
+  border: 1px solid #FFB8B0;
+  color: #C73E2D;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 13px;
+}
+.error-box small { display: block; margin-top: 8px; font-size: 11px; opacity: 0.7; }
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <h1>🌱 小苏 · 高中生物</h1>
-    <p>苏格拉底式伴学 · 启发式提问 · 不给答案只给方向</p>
-    <div class="countdown">
-      <div class="countdown-days" id="countdown">--</div>
-      <div class="countdown-label">天 · 距离 2027 高考</div>
-    </div>
+
+<div class="brand">
+  <div class="brand-title">🌱 小苏·高中生物</div>
+  <div class="brand-subtitle">苏格拉底式伴学智能体 · 引导式提问 · 不给答案只给方向</div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-num" id="countdown">--</div>
+    <div class="stat-label">天 · 距 2027 高考</div>
   </div>
-
-  <div class="grid">
-    <a class="card" href="daily-tips.html">
-      <div class="card-icon">📅</div>
-      <div class="card-title">每日生物贴士</div>
-      <div class="card-desc">每天一条新贴士，把高中生物掰开了揉碎了</div>
-      <div class="card-cta">点此打开 →</div>
-    </a>
-
-    <a class="card" href="https://balla-mcp-server.onrender.com/exam_point_card" target="_blank">
-      <div class="card-icon">🎯</div>
-      <div class="card-title">高考考点速记</div>
-      <div class="card-desc">6 个核心考点 + 倒计时 + 复习口诀</div>
-      <div class="card-cta">查看 JSON →</div>
-    </a>
-  </div>
-
-  <div class="footer">
-    📌 数据存储在 Render 后端 ·
-    💬 小苏 Agent 在超星平台运行 ·
-    🛠️ <a href="https://github.com/1093310846a-a11y/sage-pasca" target="_blank">查看源码</a>
+  <div class="stat-card">
+    <div class="stat-num" id="consecutive">--</div>
+    <div class="stat-label">天 · 连续学习</div>
   </div>
 </div>
 
+<div class="module">
+  <div class="module-header">
+    <div class="module-title">🎯 今日高频考点</div>
+    <div class="module-action">换一批 →</div>
+  </div>
+  <div class="exam-grid" id="exam-grid"></div>
+</div>
+
+<div class="tip-box">
+  <div class="tip-title">💡 今日生物冷知识</div>
+  <div class="tip-content" id="tip-content">加载中...</div>
+</div>
+
+<div class="module">
+  <div class="module-header">
+    <div class="module-title">📊 学习数据</div>
+    <div class="module-action" id="today-date">--</div>
+  </div>
+  <div class="learn-bar">
+    <div class="learn-item">
+      <div class="learn-num" id="chapters">--</div>
+      <div class="learn-label">本周章节</div>
+    </div>
+    <div class="learn-item">
+      <div class="learn-num" id="mistakes">--</div>
+      <div class="learn-label">本周错题</div>
+    </div>
+    <div class="learn-item">
+      <div class="learn-num"><span id="mastery">--</span>%</div>
+      <div class="learn-label">掌握度</div>
+    </div>
+  </div>
+</div>
+
+<div class="module">
+  <div class="module-header">
+    <div class="module-title">🎓 五大功能入口</div>
+    <div class="module-action">查看全部 →</div>
+  </div>
+  <div class="feature-grid" id="feature-grid"></div>
+</div>
+
+<div class="motivation-bar" id="motivation">正在加载中...</div>
+
 <script>
-const GAOKAO_DATE = new Date('2027-06-07');
-const today = new Date();
-const daysLeft = Math.max(0, Math.ceil((GAOKAO_DATE - today) / (1000 * 60 * 60 * 24)));
-document.getElementById('countdown').textContent = daysLeft;
+const API_URL = 'https://balla-mcp-server.onrender.com/daily_panel';
+
+async function loadData() {
+  try {
+    const res = await fetch(API_URL);
+    const json = await res.json();
+    if (json.code === 200 && json.data) {
+      render(json.data);
+    } else {
+      showError('数据格式异常');
+    }
+  } catch (e) {
+    showError('加载失败:请检查网络或 MCP 服务状态');
+  }
+}
+
+function showError(msg) {
+  document.body.innerHTML = `<div class="error-box">⚠️ ${msg}<small>接口地址: ${API_URL}</small></div>`;
+}
+
+function render(d) {
+  // 倒计时
+  document.getElementById('countdown').textContent = d.countdown_days;
+
+  // 连续学习天数
+  document.getElementById('consecutive').textContent = d.study_stats.consecutive_days;
+
+  // 今日日期
+  document.getElementById('today-date').textContent = `${d.weekday} · ${d.today_date}`;
+
+  // 6个考点(显示前 4 个,2x2 网格)
+  const grid = document.getElementById('exam-grid');
+  grid.innerHTML = d.exam_points.slice(0, 4).map(p => `
+    <div class="exam-item" title="${p.key_concept}">
+      <div class="exam-chapter">${p.chapter.split('·')[1]?.trim() || p.chapter}</div>
+      <div class="exam-title">${p.title}</div>
+      <div class="exam-freq">${p.frequency}</div>
+    </div>
+  `).join('');
+
+  // 冷知识
+  document.getElementById('tip-content').textContent = `${d.daily_tip.title} —— ${d.daily_tip.content}`;
+
+  // 学习数据
+  document.getElementById('chapters').textContent = d.study_stats.this_week_chapters;
+  document.getElementById('mistakes').textContent = d.study_stats.this_week_mistakes;
+  document.getElementById('mastery').textContent = d.study_stats.mastery_rate;
+
+  // 5个功能入口
+  const fgrid = document.getElementById('feature-grid');
+  fgrid.innerHTML = d.feature_entries.map(f => `
+    <div class="feature-item" title="${f.desc}">
+      <div class="feature-icon">${f.icon}</div>
+      <div class="feature-name">${f.name}</div>
+    </div>
+  `).join('');
+
+  // 鼓励语
+  document.getElementById('motivation').textContent = `✨ ${d.motivation}`;
+}
+
+loadData();
 </script>
 </body>
 </html>
