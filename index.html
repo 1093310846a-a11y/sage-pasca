@@ -108,6 +108,15 @@ body {
   color: #1A8870;
   cursor: pointer;
   user-select: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.module-action:hover {
+  background: #E0F0EA;
+}
+.module-action:active {
+  background: #B8DDD0;
 }
 
 /* === 考点 2x2 网格 === */
@@ -127,6 +136,11 @@ body {
 .exam-item:hover {
   background: #E0F0EA;
   transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(46, 190, 157, 0.15);
+}
+.exam-item:active {
+  transform: translateY(0);
+  background: #D0E5DA;
 }
 .exam-chapter {
   font-size: 11px;
@@ -200,6 +214,10 @@ body {
   border-color: #B8DDD0;
   transform: translateY(-1px);
 }
+.feature-item:active {
+  transform: translateY(0);
+  background: #D0E5DA;
+}
 .feature-icon {
   font-size: 22px;
   margin-bottom: 4px;
@@ -261,6 +279,80 @@ body {
   font-size: 13px;
 }
 .error-box small { display: block; margin-top: 8px; font-size: 11px; opacity: 0.7; }
+
+/* === 弹窗(考点详情/功能说明) === */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: modalIn 0.25s ease-out;
+}
+@keyframes modalIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.modal-icon {
+  font-size: 40px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1A8870;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.modal-content {
+  font-size: 14px;
+  color: #2C3E50;
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+.modal-content .row {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #E8F0EC;
+}
+.modal-content .row:last-child { border-bottom: none; }
+.modal-content .label {
+  flex-shrink: 0;
+  color: #7A8B85;
+  font-size: 12px;
+  min-width: 60px;
+}
+.modal-content .value { color: #2C3E50; flex: 1; }
+.modal-close {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 10px;
+  background: #2EBE9D;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-close:hover { background: #1A8870; }
+.modal-close:active { background: #146857; }
 </style>
 </head>
 <body>
@@ -284,7 +376,7 @@ body {
 <div class="module">
   <div class="module-header">
     <div class="module-title">🎯 今日高频考点</div>
-    <div class="module-action">换一批 →</div>
+    <div class="module-action" id="shuffle-btn">换一批 →</div>
   </div>
   <div class="exam-grid" id="exam-grid"></div>
 </div>
@@ -318,22 +410,36 @@ body {
 <div class="module">
   <div class="module-header">
     <div class="module-title">🎓 五大功能入口</div>
-    <div class="module-action">查看全部 →</div>
+    <div class="module-action" id="all-features-btn">查看全部 →</div>
   </div>
   <div class="feature-grid" id="feature-grid"></div>
 </div>
 
 <div class="motivation-bar" id="motivation">正在加载中...</div>
 
+<!-- 弹窗容器 -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-icon" id="modal-icon">🎯</div>
+    <div class="modal-title" id="modal-title">详情</div>
+    <div class="modal-content" id="modal-content"></div>
+    <button class="modal-close" id="modal-close">知道了</button>
+  </div>
+</div>
+
 <script>
 const API_URL = 'https://balla-mcp-server.onrender.com/daily_panel';
+
+let ALL_DATA = null;     // 保存完整数据
+let SHUFFLE_OFFSET = 0;  // 考点轮换偏移
 
 async function loadData() {
   try {
     const res = await fetch(API_URL);
     const json = await res.json();
     if (json.code === 200 && json.data) {
-      render(json.data);
+      ALL_DATA = json.data;
+      render(ALL_DATA);
     } else {
       showError('数据格式异常');
     }
@@ -346,6 +452,22 @@ function showError(msg) {
   document.body.innerHTML = `<div class="error-box">⚠️ ${msg}<small>接口地址: ${API_URL}</small></div>`;
 }
 
+// ============= 弹窗 =============
+function showModal({icon, title, html}) {
+  document.getElementById('modal-icon').textContent = icon || '🎯';
+  document.getElementById('modal-title').textContent = title || '详情';
+  document.getElementById('modal-content').innerHTML = html || '';
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-overlay') closeModal();
+});
+
+// ============= 渲染 =============
 function render(d) {
   // 倒计时
   document.getElementById('countdown').textContent = d.countdown_days;
@@ -356,15 +478,8 @@ function render(d) {
   // 今日日期
   document.getElementById('today-date').textContent = `${d.weekday} · ${d.today_date}`;
 
-  // 6个考点(显示前 4 个,2x2 网格)
-  const grid = document.getElementById('exam-grid');
-  grid.innerHTML = d.exam_points.slice(0, 4).map(p => `
-    <div class="exam-item" title="${p.key_concept}">
-      <div class="exam-chapter">${p.chapter.split('·')[1]?.trim() || p.chapter}</div>
-      <div class="exam-title">${p.title}</div>
-      <div class="exam-freq">${p.frequency}</div>
-    </div>
-  `).join('');
+  // 6 个考点(显示 4 个)
+  renderExamGrid();
 
   // 冷知识
   document.getElementById('tip-content').textContent = `${d.daily_tip.title} —— ${d.daily_tip.content}`;
@@ -374,10 +489,10 @@ function render(d) {
   document.getElementById('mistakes').textContent = d.study_stats.this_week_mistakes;
   document.getElementById('mastery').textContent = d.study_stats.mastery_rate;
 
-  // 5个功能入口
+  // 5 个功能入口
   const fgrid = document.getElementById('feature-grid');
   fgrid.innerHTML = d.feature_entries.map(f => `
-    <div class="feature-item" title="${f.desc}">
+    <div class="feature-item" data-id="${f.id}">
       <div class="feature-icon">${f.icon}</div>
       <div class="feature-name">${f.name}</div>
     </div>
@@ -386,6 +501,82 @@ function render(d) {
   // 鼓励语
   document.getElementById('motivation').textContent = `✨ ${d.motivation}`;
 }
+
+// ============= 考点 2x2 渲染 =============
+function renderExamGrid() {
+  if (!ALL_DATA) return;
+  const points = ALL_DATA.exam_points;
+  // 从 SHUFFLE_OFFSET 开始取 4 个,循环
+  const visible = [];
+  for (let i = 0; i < 4; i++) {
+    visible.push(points[(SHUFFLE_OFFSET + i) % points.length]);
+  }
+  const grid = document.getElementById('exam-grid');
+  grid.innerHTML = visible.map((p, idx) => `
+    <div class="exam-item" data-real-index="${(SHUFFLE_OFFSET + idx) % points.length}">
+      <div class="exam-chapter">${p.chapter.split('·')[1]?.trim() || p.chapter}</div>
+      <div class="exam-title">${p.title}</div>
+      <div class="exam-freq">${p.frequency}</div>
+    </div>
+  `).join('');
+}
+
+// ============= 考点点击 → 弹窗 =============
+document.getElementById('exam-grid').addEventListener('click', (e) => {
+  const item = e.target.closest('.exam-item');
+  if (!item) return;
+  const idx = parseInt(item.dataset.realIndex);
+  const p = ALL_DATA.exam_points[idx];
+  showModal({
+    icon: '🎯',
+    title: p.title,
+    html: `
+      <div class="row"><span class="label">章节</span><span class="value">${p.chapter}</span></div>
+      <div class="row"><span class="label">类型</span><span class="value">${p.type}</span></div>
+      <div class="row"><span class="label">核心</span><span class="value">${p.key_concept}</span></div>
+      <div class="row"><span class="label">考频</span><span class="value">${p.frequency}</span></div>
+    `
+  });
+});
+
+// ============= 换一批 =============
+document.getElementById('shuffle-btn').addEventListener('click', () => {
+  if (!ALL_DATA) return;
+  // 6 个里 4 个一组,共有 3 种组合(偏移 0,1,2)
+  SHUFFLE_OFFSET = (SHUFFLE_OFFSET + 1) % 3;
+  renderExamGrid();
+});
+
+// ============= 功能入口点击 =============
+document.getElementById('feature-grid').addEventListener('click', (e) => {
+  const item = e.target.closest('.feature-item');
+  if (!item) return;
+  const id = parseInt(item.dataset.id);
+  const f = ALL_DATA.feature_entries.find(x => x.id === id);
+  if (!f) return;
+  showModal({
+    icon: f.icon,
+    title: f.name,
+    html: `
+      <div class="row"><span class="label">功能</span><span class="value">${f.name}</span></div>
+      <div class="row"><span class="label">说明</span><span class="value">${f.desc}</span></div>
+      <div class="row"><span class="label">状态</span><span class="value">即将上线 · 请期待</span></div>
+    `
+  });
+});
+
+// ============= 查看全部 =============
+document.getElementById('all-features-btn').addEventListener('click', () => {
+  if (!ALL_DATA) return;
+  const list = ALL_DATA.feature_entries.map(f =>
+    `<div class="row"><span class="label">${f.icon} ${f.name}</span><span class="value">${f.desc}</span></div>`
+  ).join('');
+  showModal({
+    icon: '🎓',
+    title: '5 大功能入口',
+    html: list
+  });
+});
 
 loadData();
 </script>
