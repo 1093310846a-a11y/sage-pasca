@@ -113,8 +113,36 @@
   .mk .foot{margin-top:10px;display:flex;justify-content:space-between;align-items:center}
   .mk .tag-line{font-size:12px;color:var(--ink3)}
 
-  .foot{margin-top:18px;text-align:center;font-size:11.5px;color:var(--ink3)}
+  .foot{margin-top:10px;text-align:center;font-size:10.5px;color:var(--ink3)}
   @media (max-width:860px){.wrap{grid-template-columns:1fr}}
+
+  /* ── 紧凑版：占界面上半区、字号收小 ── */
+  .page{max-width:1100px;padding:10px 12px 14px}
+  .hero{gap:10px;padding:9px 13px;border-radius:12px;box-shadow:var(--shadow)}
+  .hero .av{width:30px;height:30px;border-radius:9px;font-size:16px}
+  .hero h1{font-size:14px}
+  .hero p{font-size:11px;margin-top:0}
+  .wrap{margin-top:8px;gap:10px}
+  .card{padding:8px 12px;border-radius:12px}
+  .card-h .t{font-size:12px}
+  .card-h .note{font-size:10px}
+  .cats{margin:2px 0 0;gap:16px}
+  .cat{font-size:12px;padding:5px 1px 4px}
+  .qrow{padding:5px 2px;gap:8px}
+  .qrow .badge{font-size:9.5px;padding:1px 6px}
+  .qrow .label{font-size:12.5px}
+  .ans .intro{font-size:11.5px;padding:6px 9px}
+  .ans .pts{margin-top:7px;gap:4px}
+  .ans .pt{font-size:11.5px}
+  .map-wrap{margin-top:7px}
+  .map-tit{font-size:10.5px;padding:5px 9px 0}
+  .ask-back{font-size:11.5px;padding:6px 2px 0;margin-top:7px}
+  .btn{font-size:11px;padding:4px 10px;border-radius:7px}
+  .foot{margin-top:6px}
+  .hot .nm{font-size:11.5px}
+  .hot .num{font-size:10px}
+  .mk-card{max-width:min(500px,92vw)}
+  .mk-card h3{font-size:13px}
 </style>
 </head>
 <body>
@@ -124,10 +152,9 @@
   <section class="hero">
     <div class="av">🌱</div>
     <div class="hi">
-      <h1>嗨，我是小苏 · 你的高中生物学习搭子</h1>
-      <p>不直接喂答案，陪你一步步想明白 —— 挑一个想问的，点开看。</p>
+      <h1>小苏 · 高中生物常问</h1>
+      <p>挑一个想解决的，点开看思路</p>
     </div>
-    <div class="stat">距 2027 高考<b id="cd" style="display:none"></b></div>
   </section>
 
   <div class="wrap">
@@ -140,22 +167,11 @@
       <ul class="q" id="qList"></ul>
     </section>
 
-    <!-- 右：一图流 + 高频考点 -->
-    <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
-      <section class="card poster-card">
-        <div class="card-h"><span class="t">今日一图流</span>
-          <span class="note">细胞呼吸</span></div>
-        <img class="ph" src="posters/有氧呼吸一图流.png" alt="有氧呼吸一图流"
-             onclick="openPoster('posters/有氧呼吸一图流.png','有氧呼吸 · 一图流','posters/有氧呼吸一图流.png')">
-        <div class="poster-cap">点图放大 · 右击可存图</div>
-      </section>
-
-      <section class="card">
-        <div class="card-h"><span class="t">本周高频考点</span>
-          <span class="note">近 5 年</span></div>
-        <ul class="hot" id="hot"></ul>
-      </section>
-    </div>
+    <!-- 右：高频考点 -->
+    <section class="card">
+      <div class="card-h"><span class="t">高频考点</span><span class="note">近 5 年</span></div>
+      <ul class="hot" id="hot"></ul>
+    </section>
   </div>
 
   <div class="foot">小苏 · 苏格拉底式伴学 —— 给的永远是思路，不是标准答案</div>
@@ -349,6 +365,7 @@ function renderList(){
     row.querySelector(".label").textContent=it.q;
     row.onclick=function(){ li.classList.toggle("open"); };
     var ans=document.createElement("div"); ans.className="ans";
+    li._it = it;
     li.appendChild(row); li.appendChild(ans); list.appendChild(li);
 
     var h='';
@@ -359,10 +376,7 @@ function renderList(){
     h+='</div>';
     if(it.map) h+='<div class="map-wrap"><div class="map-tit">知识点脑图</div><div class="mm"></div></div>';
     h+='<div class="ask-back">'+ (it.ask||"讲给同桌听一遍，说不顺的地方就是你的漏洞。") +'</div>';
-    h+='<div class="act">';
-    if(it.poster) h+='<button class="btn" onclick="openPoster(\''+it.poster+'\',\''+it.q.replace(/'/g,"")+' · 一图流\',\''+it.poster+'\')">看一图流</button>';
-    h+='<button class="btn ghost" onclick="makePpt(this,\''+it.q.replace(/'/g,"")+'\','+(it.poster?'1':'0')+')">生成讲义 PPT</button>';
-    h+='</div>';
+    h+='<div class="act"><button class="btn" onclick="makePpt(this)">生成讲义 PPT</button></div>';
     ans.innerHTML=h;
     if(it.map) drawMindMap(ans.querySelector(".mm"), it.map);
   });
@@ -412,69 +426,142 @@ function drawMindMap(box, root){
 }
 function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-/* ============ 一图流弹窗 ============ */
-function openPoster(src, title, full){
-  $("mkT").textContent = title || "一图流";
-  $("mkB").innerHTML = '<img src="'+src+'" alt="海报">'+
-    '<div class="foot"><span class="tag-line">右击图片可保存 PNG · 可用作知识库图片素材</span></div>';
-  $("mk").classList.add("on");
-}
 function closeMk(){ $("mk").classList.remove("on"); }
 $("mk").addEventListener("click", function(e){ if(e.target.id==="mk") closeMk(); });
 
-/* ============ 生成讲义 PPT（自生成，无服务器） ============ */
+/* ============ 生成讲义 PPT（7 页 · 含脑图图片 + 速记表，非纯文字） ============ */
 function getQ(btn){
   var li=btn.closest("li"), lab=li?li.querySelector(".qrow .label"):null;
   return lab?lab.textContent:"";
 }
-function getAsk(btn){
-  var a=btn.closest(".ans"), x=a?a.querySelector(".ask-back"):null;
-  return x?x.innerText:"";
+function getItem(btn){ return btn.closest("li") ? btn.closest("li")._it : null; }
+function trunc(s,n){ s=(s==null?"":s); return s.length>n? s.slice(0,n-1)+"…" : s; }
+
+/* 把页面里那张 SVG 脑图转成 PNG（dataURL），用于放进 PPT —— 实现"脑图进 PPT" */
+function svgToPng(svg, cb){
+  try{
+    var vb=(svg.getAttribute("viewBox")||"0 0 800 500").trim().split(/\s+/).map(parseFloat);
+    var W=vb[2]||800, H=vb[3]||500, ratio=W/H;
+    var cw=Math.min(Math.round(W*2),2200), ch=Math.round(cw/ratio);
+    var xml=new XMLSerializer().serializeToString(svg);
+    if(xml.indexOf("xmlns")<0) xml=xml.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    var blob=new Blob(['<?xml version="1.0" encoding="UTF-8"?>'+xml],{type:"image/svg+xml;charset=utf-8"});
+    var url=URL.createObjectURL(blob), img=new Image();
+    img.onload=function(){
+      var cv=document.createElement("canvas"); cv.width=cw; cv.height=ch;
+      var c=cv.getContext("2d"); c.fillStyle="#FFFFFF"; c.fillRect(0,0,cw,ch);
+      c.drawImage(img,0,0,cw,ch); URL.revokeObjectURL(url);
+      cb(cv.toDataURL("image/png"), ratio);
+    };
+    img.onerror=function(){ URL.revokeObjectURL(url); cb(null, ratio); };
+    img.src=url;
+  }catch(e){ cb(null, 1.6); }
 }
-function getLines(btn){
-  var out=[];
-  var a=btn.closest(".ans");
-  if(a) a.querySelectorAll(".pt").forEach(function(p){
-    var t=p.querySelector(".tx"); if(t) out.push(t.innerText);
-  });
-  return out;
-}
-function makePpt(btn){
-  btn.textContent="⏳ 正在生成…";
-  var q=getQ(btn), lines=getLines(btn), ask=getAsk(btn);
-  function doneDownload(Pptx){
-    try{
-      var pptx=new Pptx();
-      pptx.defineLayout({name:"S",width:10,height:5.63});
-      pptx.layout="S";
-      var s1=pptx.addSlide();
-      s1.background={color:"FFFFFF"};
-      s1.addText(q,{x:0.5,y:0.35,w:9,h:0.9,fontSize:20,bold:true,color:"1F2937"});
-      s1.addShape(pptx.ShapeType.rect,{x:0.5,y:1.28,w:1.3,h:0.05,fill:{color:"2B7DE9"}});
-      var y=1.55;
-      lines.slice(0,6).forEach(function(t){
-        s1.addText("• "+t,{x:0.55,y:y,w:8.9,h:0.8,fontSize:13,color:"334155",valign:"top"});
-        y+=0.72;
-      });
-      s1.addText("小苏 · 苏格拉底式伴学 · 高中生物",{x:0.5,y:5.05,w:9,h:0.35,fontSize:9,color:"98A2B3",align:"right"});
-      var s2=pptx.addSlide();
-      s2.background={color:"F4F8FD"};
-      s2.addText("把这个点讲给同桌听",{x:0.5,y:0.4,w:9,h:0.7,fontSize:16,bold:true,color:"1E5BC6"});
-      s2.addText(ask||" ",{x:0.5,y:1.1,w:9,h:3.2,fontSize:13,color:"334155",valign:"top"});
-      pptx.writeFile({fileName:"小苏讲义-"+q.slice(0,8)+".pptx"});
-      btn.textContent="📊 已生成，请查收（点此重出）";
-    }catch(e){ btn.textContent="📊 生成失败，改用预览"; showSlideFallback(btn); }
+
+function buildPpt(Pptx, btn){
+  var item=getItem(btn)||{};
+  var q=getQ(btn), pts=item.pts||[], intro=item.intro||"";
+  var ask=item.ask||"把这个点讲给同桌听一遍。", badge=item.badge||"基础";
+  var svgEl=btn.closest(".ans").querySelector(".mm svg");
+  var pptx=new Pptx();
+  pptx.defineLayout({name:"S",width:10,height:5.63}); pptx.layout="S";
+  function topbar(s){ s.addShape(pptx.ShapeType.rect,{x:0,y:0,w:10,h:0.09,fill:{color:"4B7BFF"}}); }
+  function pg(s,n){ s.addText("小苏 · 苏格拉底式伴学 · 高中生物   ·   "+n+" / 7",{x:0.5,y:5.12,w:9,h:0.3,fontSize:8.5,color:"A8AEBE"}); }
+  function head(s,t){ s.addText(t,{x:0.5,y:0.32,w:9,h:0.5,fontSize:15,bold:true,color:"1A1D2E"});
+    s.addShape(pptx.ShapeType.rect,{x:0.5,y:0.92,w:1.0,h:0.045,fill:{color:"4B7BFF"}}); }
+
+  // 1 封面
+  var s=pptx.addSlide(); s.background={color:"FFFFFF"}; topbar(s);
+  s.addText("小苏 · 生物考点讲义",{x:0.5,y:0.55,w:9,h:0.4,fontSize:11,color:"4B7BFF"});
+  s.addText(q,{x:0.5,y:1.25,w:9,h:1.6,fontSize:23,bold:true,color:"1A1D2E"});
+  s.addShape(pptx.ShapeType.rect,{x:0.5,y:2.95,w:1.6,h:0.045,fill:{color:"4B7BFF"}});
+  if(intro) s.addText(intro,{x:0.5,y:3.2,w:9,h:1.1,fontSize:12.5,color:"5A6072"});
+  s.addText("共 7 页 · 含知识点脑图与速记表 · "+badge+"考点",{x:0.5,y:4.9,w:9,h:0.4,fontSize:10,color:"A8AEBE",align:"right"});
+  pg(s,"1");
+
+  // 2 脑图（转图片插入，不占文字）
+  var s2=pptx.addSlide(); s2.background={color:"FBFBFD"};
+  head(s2,"知识点脑图"); pg(s2,"2");
+  var placeMind=function(png,ratio){
+    var boxW=8.6, boxH=3.2, x0=0.7, y0=1.5, dw=boxW, dh=dw/ratio;
+    if(dh>boxH){ dh=boxH; dw=dh*ratio; }
+    if(png) s2.addImage({data:png, x:x0+(boxW-dw)/2, y:y0, w:dw, h:dh});
+    else s2.addText("（脑图已在页面展开，此处预留插图位）",{x:0.5,y:2.5,w:9,h:0.5,fontSize:11,color:"98A2B3",align:"center"});
+  };
+  var png = svgEl ? svgEl.__png : null;
+  placeMind(png, svgEl && svgEl.__ratio ? svgEl.__ratio : 1.6);
+
+  // 3 速记表（表格 = 多模态，非纯文字）
+  var s3=pptx.addSlide(); s3.background={color:"FFFFFF"};
+  head(s3,"速记表 · 一表看懂"); pg(s3,"3");
+  var rows=[[{text:"关键点",options:{bold:true,color:"1A1D2E"}},{text:"怎么记 / 怎么说",options:{bold:true,color:"1A1D2E"}}]];
+  pts.slice(0,6).forEach(function(p){ rows.push([{text:trunc(p[0]||"-",9)},{text:trunc(p[1]||"-",26)}]); });
+  try{
+    s3.addTable(rows,{x:0.5,y:1.5,w:9,colW:[2.4,6.6],fontSize:10.5,color:"3D4456",margin:3,
+      valign:"middle",fill:{color:"FFFFFF"},border:{type:"solid",color:"E3E7F0",pt:0.5}});
+  }catch(e){
+    s3.addText(rows.slice(1).map(function(r){return "· "+r[0].text+" —— "+r[1].text;}).join("\n"),
+      {x:0.5,y:1.55,w:9,h:3.2,fontSize:12,color:"3D4456",valign:"top"});
   }
-  ensurePptx(doneDownload, function(){ btn.textContent="📊 离线模式 · 讲义预览"; showSlideFallback(btn); });
+
+  // 4-5 分页要点（讲思路，两页）
+  var per=Math.max(1,Math.ceil(pts.length/2)), gi=0, pageN=4;
+  while(gi<pts.length && pageN<=5){
+    var sx=pptx.addSlide(); sx.background={color:"FFFFFF"};
+    head(sx, pageN===4?"怎么一步步想":"接着想 · 后半段"); pg(sx,String(pageN));
+    var yy=1.4;
+    for(var k=0;k<per && gi<pts.length;k++,gi++){
+      var p=pts[gi], label=p[0]||"", desc=p[1]||"";
+      if(label){ sx.addText("▍"+label,{x:0.7,y:yy,w:8.6,h:0.38,fontSize:13,bold:true,color:"4B7BFF"}); yy+=0.4; }
+      sx.addText(desc,{x:0.95,y:yy,w:8.1,h:1.0,fontSize:12,color:"3D4456",valign:"top",margin:0});
+      yy+=1.0;
+      if(k<per-1 && gi+1<pts.length) yy+=0.12;
+    }
+    pageN++;
+  }
+
+  // 6 防坑 / 提醒
+  var s6=pptx.addSlide(); s6.background={color:"FFF9F0"};
+  head(s6,"最容易翻车的点"); pg(s6,"6");
+  s6.addShape(pptx.ShapeType.rect,{x:0.5,y:1.3,w:0.06,h:1.9,fill:{color:"E09B18"}});
+  s6.addText(ask,{x:0.75,y:1.25,w:8.6,h:2.2,fontSize:14,color:"7A5320",valign:"top"});
+  s6.addText("记牢：不背结论，把“为什么”讲顺，才算真的会。",{x:0.6,y:4.5,w:8.8,h:0.4,fontSize:11,color:"A8AEBE"});
+
+  // 7 课后小结
+  var s7=pptx.addSlide(); s7.background={color:"FFFFFF"}; topbar(s7);
+  s7.addText("课后 60 秒",{x:0.5,y:0.55,w:9,h:0.5,fontSize:12,bold:true,color:"4B7BFF"});
+  s7.addText("合上讲义，用三句话把这道题讲给同桌听",{x:0.5,y:1.6,w:9,h:1.1,fontSize:21,bold:true,color:"1A1D2E"});
+  s7.addText("1) 考什么   2) 先看哪   3) 陷阱在哪",{x:0.5,y:3.0,w:9,h:0.6,fontSize:14,color:"5A6072"});
+  s7.addText("小苏 · 引导式伴学：不给答案，只给方向",{x:0.5,y:4.7,w:9,h:0.4,fontSize:10.5,color:"A8AEBE",align:"right"});
+  pg(s7,"7");
+  return pptx;
+}
+
+function makePpt(btn){
+  btn.textContent="⏳ 正在生成 7 页…";
+  var svgEl=btn.closest(".ans").querySelector(".mm svg");
+  function afterSvg(){
+    ensurePptx(function(Pptx){
+      try{
+        var pptx=buildPpt(Pptx, btn);
+        pptx.writeFile({fileName:"小苏讲义-"+(getQ(btn)||"生物").slice(0,8)+".pptx"});
+        btn.textContent="✅ 已生成下载（点此重出）";
+      }catch(e){ btn.textContent="⚠ 生成失败，改用预览"; showSlideFallback(btn); }
+    }, function(){ btn.textContent="离线 · 看讲义预览"; showSlideFallback(btn); });
+  }
+  if(svgEl && !svgEl.__png){ svgToPng(svgEl, function(png,ratio){ svgEl.__png=png; svgEl.__ratio=ratio; afterSvg(); }); }
+  else afterSvg();
 }
 function showSlideFallback(btn){
-  var q=getQ(btn), lines=getLines(btn);
-  var html='<div style="background:#F4F8FD;border-radius:12px;padding:20px;aspect-ratio:16/9">'+
-    '<div style="font-size:18px;font-weight:700;color:#1F2937">'+esc(q)+'</div>'+
-    '<div style="width:64px;height:5px;background:#2B7DE9;border-radius:3px;margin:12px 0 16px"></div>';
-  lines.forEach(function(t){ html+='<div style="font-size:13px;color:#334155;margin:6px 0">• '+esc(t)+'</div>'; });
-  html+='<div style="margin-top:18px;font-size:10px;color:#98A2B3;text-align:right">小苏 · 苏格拉底式伴学</div></div>'+
-    '<div class="foot"><span class="tag-line">离线演示：这一页即一张「讲义 PPT」，可直接截图。联网后同一按钮会真下载 .pptx 文件。</span></div>';
+  var q=getQ(btn), item=getItem(btn)||{pts:[],ask:"讲给同桌听一遍"};
+  var html='<div style="background:#FBFBFD;border-radius:12px;padding:14px;aspect-ratio:16/9;overflow:auto">'+
+    '<div style="font-size:15px;font-weight:700;color:#1A1D2E">'+esc(q)+'</div>'+
+    '<div style="width:52px;height:4px;background:#4B7BFF;border-radius:2px;margin:7px 0 9px"></div>';
+  (item.pts||[]).forEach(function(p){
+    html+='<div style="font-size:11.5px;color:#3D4456;margin:3px 0">▍'+esc(p[0]||"")+"："+esc(p[1]||"")+'</div>';
+  });
+  html+='<div style="margin-top:8px;font-size:11px;color:#98A2B3">'+esc(item.ask||"")+'</div>'+
+    '</div><div class="foot"><span class="tag-line">离线仅预览第 1 页要点；联网点同按钮会真下载 7 页 PPT（含脑图与速记表）。</span></div>';
   $("mkT").textContent="讲义 · "+q;
   $("mkB").innerHTML=html;
   $("mk").classList.add("on");
@@ -483,7 +570,7 @@ function ensurePptx(ok, fail){
   if(window.pptxgenjs || window.PptxGenJS){ ok(window.pptxgenjs||window.PptxGenJS); return; }
   var s=document.createElement("script");
   s.src="https://cdn.jsdelivr.net/npm/pptxgenjs@3/dist/pptxgen.bundle.js";
-  s.onload=function(){ if(window.pptxgenjs){ok(window.pptxgenjs);}else fail(); };
+  s.onload=function(){ if(window.pptxgenjs||window.PptxGenJS){ ok(window.pptxgenjs||window.PptxGenJS); } else fail(); };
   s.onerror=fail;
   document.head.appendChild(s);
 }
@@ -502,14 +589,6 @@ function ensurePptx(ok, fail){
   });
 })();
 
-/* ============ hero：高考倒计时（打通现有后端 /daily_panel，失败则隐藏） ============ */
-(function(){
-  var cd=$("cd");
-  fetch("https://balla-mcp-server.onrender.com/daily_panel").then(function(r){return r.json();}).then(function(d){
-    var v=(d&&d.data&&d.data.countdown_days)||0;
-    if(v){ cd.style.display="inline"; cd.textContent=v+" 天"; }
-  }).catch(function(){});
-})();
 </script>
 </body>
 </html>
