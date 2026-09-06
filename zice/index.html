@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>错题自诊册 · 样例（v1）</title>
+<link rel="icon" href="data:,">
+<!-- 错题自诊册 v1 样例（未推送，本地参考）
+     定位：学生的个人“错题自诊报告”，纯前端可跑
+     v1 改进（本轮反馈）：
+      ① 考点 → 覆盖 必修1/必修2/选必1/选必2/选必3 的分组考点树（模块 + 考点两级），雷达按模块聚合
+      ② 录题 → 按题型显示控件：题干 / 选项(A–D) / 我的答案 / 正确答案 / 解析 / 题型 / 考点 / 错因 / 掌握，
+         引导一次收齐，避免“只粘一句”或漏掉解析
+      ③ 错题卡 / 导出 PDF 都保留 题干·选项·答案·解析 -->
+<style>
+  :root{--bg:#eef0f7;--card:#fff;--line:rgba(15,23,42,.08);
+    --ink:#1a1d2e;--ink2:#5a6072;--ink3:#a8aebe;
+    --pk:#4f46e5;--pk-soft:#eef2ff;
+    --r:#ef4444;--r-soft:#fdecec;--a:#f59e0b;--a-soft:#fff4e0;--g:#22c55e;--g-soft:#e9f7ef;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.7}
+  .wrap{max-width:1060px;margin:0 auto;padding:16px 16px 40px}
+  .mono{font-family:'JetBrains Mono',Consolas,monospace}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 6px rgba(15,23,42,.03)}
+  /* header */
+  .head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .logo{width:38px;height:38px;border-radius:11px;background:var(--pk);color:#fff;display:grid;place-items:center;font-size:19px}
+  .head h1{font-size:17px;font-weight:700}
+  .head .sub{font-size:11.5px;color:var(--ink3)}
+  .head .spacer{flex:1}
+  .mini{font-size:11px;color:var(--ink3)}
+  /* tabs */
+  .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:14px}
+  .tab{background:none;border:none;border-bottom:2px solid transparent;font:inherit;font-size:13.5px;
+    color:var(--ink2);padding:8px 12px;cursor:pointer}
+  .tab.on{color:var(--pk);border-bottom-color:var(--pk);font-weight:600}
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  .st{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .st .v{font-size:22px;font-weight:800;color:var(--pk);font-family:var(--mono)}
+  .st .v.r{color:var(--r)}.st .v.g{color:var(--g)}.st .v.a{color:var(--a)}
+  .st .k{font-size:11px;color:var(--ink3);margin-top:1px}
+  /* dashboard grid */
+  .dash{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:14px}
+  .dash .card h3{font-size:13px;color:var(--ink2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .dash .card h3::before{content:"";width:3px;height:12px;border-radius:2px;background:var(--pk)}
+  @media(max-width:900px){.dash{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+  .bar-r{margin:8px 0;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2)}
+  .bar-r .b{flex:1;height:8px;border-radius:4px;background:#eceef5;overflow:hidden}
+  .bar-r .b i{display:block;height:100%;border-radius:4px}
+  /* book */
+  .toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px}
+  .chip{border:1px solid var(--line);background:#fff;font:inherit;font-size:12px;color:var(--ink2);
+    padding:4px 11px;border-radius:99px;cursor:pointer}
+  .chip.on{background:var(--pk);color:#fff;border-color:var(--pk);font-weight:600}
+  .viewseg{margin-left:auto;display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .viewseg button{border:none;background:#fff;font:inherit;font-size:12px;padding:5px 12px;cursor:pointer;color:var(--ink2)}
+  .viewseg button.on{background:var(--pk-soft);color:var(--pk);font-weight:600}
+  .grp{margin-bottom:14px}
+  .grp-t{font-size:12.5px;font-weight:700;color:var(--ink2);margin:10px 2px 6px;display:flex;align-items:baseline;gap:8px}
+  .grp-t .n{color:var(--ink3);font-weight:400;font-size:11px;font-family:var(--mono)}
+  .grp .card{margin-bottom:8px;padding:12px 14px}
+  .krow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px}
+  .tag{font-size:10.5px;padding:1px 8px;border-radius:6px;border:1px solid}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .dot.r{background:var(--r)}.dot.a{background:var(--a)}.dot.g{background:var(--g)}
+  .qTxt{font-size:13px;margin:7px 0 5px;color:var(--ink);line-height:1.6}
+  .opts{display:grid;grid-template-columns:1fr;gap:2px;margin:3px 0 6px}
+  .optLine{font-size:12.5px;color:var(--ink2);padding-left:2px}
+  .optLine b{color:var(--pk);font-weight:700;margin-right:6px}
+  .ansline{display:flex;gap:14px;font-size:12px;color:var(--ink2);flex-wrap:wrap}
+  .ansline .my b{color:#a3372f}.ansline .okb b{color:#2f7d50}
+  details.sol{margin-top:7px;border:1px dashed #cfd6ea;border-radius:8px;background:#f8f9fe;overflow:hidden}
+  details.sol summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;
+    font-size:11.5px;color:var(--pk);padding:5px 10px;font-weight:600}
+  details.sol summary::-webkit-details-marker{display:none}
+  details.sol summary .arr{margin-left:auto;transition:transform .18s}
+  details.sol[open] summary .arr{transform:rotate(90deg)}
+  details.sol .in{padding:0 12px 9px;font-size:12.5px;color:var(--ink);line-height:1.75}
+  details.sol .in .why{display:block;margin-top:3px;color:var(--ink3);font-size:11px}
+  .acts{display:flex;gap:6px;margin-top:8px}
+  .abtn{border:1px solid var(--line);background:#fff;font:inherit;font-size:11.5px;color:var(--ink2);
+    padding:3px 10px;border-radius:7px;cursor:pointer}
+  .abtn:hover{border-color:var(--pk);color:var(--pk)}
+  /* review today */
+  .today-head{font-size:13px;color:var(--ink2);margin:6px 0 10px}
+  /* form */
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:60;display:none;align-items:center;justify-content:center;padding:18px}
+  .modal.on{display:flex}
+  .modal .card{width:min(620px,100%);max-height:92vh;overflow:auto}
+  label{display:block;font-size:12px;color:var(--ink2);margin:10px 0 4px}
+  label b{color:var(--r)}
+  input,select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:13px;background:#fff;color:var(--ink)}
+  textarea{resize:vertical;min-height:60px}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+  .form-row.three{grid-template-columns:1fr 1fr 1fr}
+  .optGrid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+  .btn{border:none;border-radius:9px;padding:8px 16px;font:inherit;font-size:13px;cursor:pointer;font-weight:600}
+  .btn.pk{background:var(--pk);color:#fff}
+  .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink2)}
+  .hint{font-size:11.5px;color:var(--ink3);background:#f6f8fc;border-radius:8px;padding:7px 10px;margin-top:10px;line-height:1.7}
+  .tipchip{font-size:11px;color:#7c6a1d;background:#fbf7ec;border:1px solid #eee3c0;border-radius:6px;padding:1px 6px}
+  .empty{color:var(--ink3);text-align:center;font-size:13px;padding:30px 0}
+
+  /* ── 柔和化：标签统一中性、降饱和 ── */
+  .tag{background:#f4f6fa;color:#475569;border-color:#e8ebf1}
+  .tag.w{background:#fbf7ec;color:#8a6a1f;border-color:#eee3c0}
+  .tag .cd{display:inline-block;width:6px;height:6px;border-radius:50%;background:#d9a33b;margin-right:4px;vertical-align:1px}
+  .grp-t{position:relative}
+  .grp-t .gtool{margin-left:auto;background:#fff;border:1px solid #e2e8f0;border-radius:7px;color:#4f46e5;font:inherit;font-size:11px;padding:2px 9px;cursor:pointer}
+  .grp-t .gtool:hover{background:#eef2ff}
+  .toolbar .chip{color:#5a6072}
+  body.exporting .wrap{display:none!important}
+  @media print{ body.exporting .wrap{display:none!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- header -->
+  <div class="head">
+    <div class="logo">📚</div>
+    <div><h1>错题自诊册</h1><div class="sub">个人错题 · 归因 · 掌握雷达 · 遗忘复习</div></div>
+    <div class="spacer"></div>
+    <button class="chip" onclick="addModal()">＋ 录一道错题</button>
+    <button class="chip" onclick="resetDemo()">重置示例</button>
+    <span class="mini" id="savedNote"></span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" data-v="dash">总览</button>
+    <button class="tab" data-v="book">错题本</button>
+    <button class="tab" data-v="today">今日复习</button>
+  </div>
+
+  <!-- 总览 -->
+  <div id="v-dash">
+    <div class="stats" id="statRow"></div>
+    <div class="dash">
+      <div class="card"><h3>模块掌握雷达<span class="tipchip">按模块聚合考点</span></h3><div id="radar"></div></div>
+      <div class="card"><h3>错因分布（五分类）</h3><div id="whyBars"></div></div>
+      <div class="card"><h3>题型分布</h3><div id="typeBars"></div></div>
+    </div>
+  </div>
+
+  <!-- 错题本 -->
+  <div id="v-book" style="display:none">
+    <div class="toolbar" id="typeChips"></div>
+    <div class="toolbar">
+      <span class="chip" style="cursor:default">归类：</span>
+      <div class="viewseg">
+        <button id="grpType" class="on" onclick="setGroup('type')">按题型</button>
+        <button id="grpPoint" onclick="setGroup('point')">按同类考点</button>
+      </div>
+      <button class="chip" style="border-color:#4f46e5;color:#4f46e5;margin-left:auto" onclick="exportList('全部错题('+(curType==='全部'?'全部':curType)+')', filterBook())">⬇ 一键导出 PDF</button>
+    </div>
+    <div id="bookList"></div>
+  </div>
+
+  <!-- 今日复习 -->
+  <div id="v-today" style="display:none">
+    <div class="today-head" id="todayHead"></div>
+    <div id="todayList"></div>
+  </div>
+</div>
+
+<!-- 录入弹窗 -->
+<div class="modal" id="mk">
+  <div class="card">
+    <h3 style="font-size:15px;margin-bottom:2px">录入一道错题</h3>
+    <div class="hint">三选一：① 在超星小苏里拍照 OCR 后，把识别文字粘贴到下方；② 手动填；③ 从带练题“一键收”会自动带入。<br>
+      请尽量收齐：<b>题干 → 选项(选择/多选) → 我的答案 → 正确答案 → 解析</b>，这样之后复习和导出 PDF 才有完整素材。</div>
+
+    <div class="form-row">
+      <div><label>题型</label>
+        <select id="fT" onchange="onType()"></select></div>
+      <div><label>模块</label>
+        <select id="fM" onchange="fillP()"></select></div>
+    </div>
+    <label>考点 <b>*</b>（模块选好后，在这里选到具体考点）</label>
+    <select id="fP"></select>
+
+    <label>题干 <b>*</b></label>
+    <textarea id="fQ" placeholder="把题目原样贴过来（OCR 识别文字直接粘这里）。例：下图表示某种酶在不同温度下的催化速率变化，下列说法正确的是……"></textarea>
+
+    <!-- 选择/多选 才显示选项 -->
+    <div id="optBox" style="display:none">
+      <label>选项 <span class="tipchip">选择/多选时填，逐项贴入，方便回看和解析</span></label>
+      <div class="optGrid">
+        <div><label>A</label><input id="fOA"></div>
+        <div><label>B</label><input id="fOB"></div>
+        <div><label>C</label><input id="fOC"></div>
+        <div><label>D</label><input id="fOD"></div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div id="mineBox"><label>我的答案 <b>*</b></label></div>
+      <div id="okBox"><label>正确答案 <b>*</b></label></div>
+    </div>
+
+    <label>解析 / 错在哪 <b>*</b></label>
+    <textarea id="fAns" placeholder="把答案讲清：为什么选它、错在哪、正确思路是什么。例：酶只降低活化能、不改反应方向与平衡；高温使酶变性不可逆。写不完整时，先留一句“看解析时补充”，回头再补。"></textarea>
+
+    <div class="form-row">
+      <div><label>错因（自诊）</label><select id="fW"></select></div>
+      <div><label>掌握（先标红）</label><select id="fL"><option value="0">红·还不会</option><option value="1">黄·有点晃</option><option value="2">绿·已稳</option></select></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn pk" onclick="addOne()">加入错题册</button>
+      <button class="btn ghost" onclick="closeAdd()">取消</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ 考点库：模块 → 考点（覆盖高中生物 必修1/2 + 选必1/2/3） ============
+   口径：与《KB01_知识点与话术》一致按 模块·章·小节 组织；雷达按模块聚合。
+   录题时可自由选择；未来如发现缺考点，在对应模块 pts 里补一行即可。 */
+var MODULES=[
+ {id:"M1", name:"必修1 · 分子与细胞", short:"必修一", pts:[
+  {c:"1.1",n:"细胞是生命活动的基本单位"},
+  {c:"1.2",n:"细胞的多样性和统一性"},
+  {c:"2.1",n:"细胞中的元素和化合物"},
+  {c:"2.2",n:"细胞中的无机物"},
+  {c:"2.3",n:"细胞中的糖类和脂质"},
+  {c:"2.4",n:"蛋白质的结构与功能"},
+  {c:"2.5",n:"核酸是遗传信息的携带者"},
+  {c:"3.1",n:"细胞膜的结构和功能"},
+  {c:"3.2",n:"细胞器之间的分工合作"},
+  {c:"3.3",n:"细胞核的结构和功能"},
+  {c:"4.1",n:"被动运输（渗透·质壁分离）"},
+  {c:"4.2",n:"主动运输与胞吞胞吐"},
+  {c:"5.1",n:"酶与ATP"},
+  {c:"5.2",n:"细胞呼吸"},
+  {c:"5.3",n:"光合作用"},
+  {c:"6.1",n:"细胞的增殖（有丝分裂·图像）"},
+  {c:"6.2",n:"细胞的分化·衰老·死亡"}]},
+ {id:"M2", name:"必修2 · 遗传与进化", short:"必修二", pts:[
+  {c:"1.1",n:"分离定律"},
+  {c:"1.2",n:"自由组合定律"},
+  {c:"2.1",n:"减数分裂与受精作用"},
+  {c:"2.2",n:"基因在染色体上"},
+  {c:"2.3",n:"伴性遗传与系谱分析"},
+  {c:"3.1",n:"DNA是主要的遗传物质（实验）"},
+  {c:"3.2",n:"DNA的结构"},
+  {c:"3.3",n:"DNA的复制与碱基计算"},
+  {c:"3.4",n:"基因是有遗传效应的DNA片段"},
+  {c:"4.1",n:"基因表达：转录与翻译"},
+  {c:"4.2",n:"基因表达与性状的关系"},
+  {c:"5.1",n:"基因突变和基因重组"},
+  {c:"5.2",n:"染色体变异"},
+  {c:"5.3",n:"人类遗传病"},
+  {c:"6.1",n:"生物的进化与种群基因频率"}]},
+ {id:"S1", name:"选择性必修1 · 稳态与调节", short:"选必一", pts:[
+  {c:"1.1",n:"内环境的组成与稳态"},
+  {c:"2.1",n:"神经调节的结构基础与反射"},
+  {c:"2.2",n:"兴奋的传导与传递"},
+  {c:"2.3",n:"神经系统的分级调节与高级功能"},
+  {c:"3.1",n:"激素调节（血糖·甲状腺等）"},
+  {c:"3.2",n:"体液调节与神经调节的关系"},
+  {c:"4.1",n:"免疫系统的组成与特异性免疫"},
+  {c:"4.2",n:"免疫失调与免疫学的应用"},
+  {c:"5.1",n:"植物生长素与其他植物激素"},
+  {c:"5.2",n:"植物生长调节剂与环境调节"}]},
+ {id:"S2", name:"选择性必修2 · 生物与环境", short:"选必二", pts:[
+  {c:"1.1",n:"种群的数量特征"},
+  {c:"1.2",n:"种群数量的变化"},
+  {c:"2.1",n:"群落的结构与种间关系"},
+  {c:"2.2",n:"群落的主要类型与演替"},
+  {c:"3.1",n:"生态系统的结构与能量流动"},
+  {c:"3.2",n:"物质循环·信息传递·稳定性"},
+  {c:"4.1",n:"人与环境·生物多样性保护"}]},
+ {id:"S3", name:"选择性必修3 · 生物技术与工程", short:"选必三", pts:[
+  {c:"1.1",n:"微生物的培养与应用"},
+  {c:"1.2",n:"发酵工程"},
+  {c:"2.1",n:"植物细胞工程"},
+  {c:"2.2",n:"动物细胞工程与胚胎工程"},
+  {c:"3.1",n:"基因工程：工具与操作程序"},
+  {c:"3.2",n:"基因工程的应用与蛋白质工程"}]}
+];
+var TYPES=["单选题","多选题","填空题","读图题","实验探究题","计算题","系谱分析题","概念辨析题","综合题"];
+var WHYS=["知识性","理解性","方法性","运算性","习惯性"];
+var OFF_DAY=[0,1,3,7,14];
+var LS="zcd_v1";
+var book=[];
+
+/* ============ 示例数据（演示用，每条都带解析，展示“收齐”的样子） ============ */
+function seed(){
+  var D=[],i=0;
+  function push(kpt,type,mod,stem,opts,mine,ok,ans,why,lv,stage,sched){
+    D.push({id:i++,kpt:kpt,type:type,mod:mod,stem:stem,opts:opts||null,
+      mine:mine,ok:ok,ans:ans,why:why,lv:lv,stage:stage,sched:sched}); }
+  // —— 必修1 ——
+  push("细胞呼吸","单选题","M1","有氧呼吸第三阶段的场所是？",
+    ["细胞质基质","线粒体基质","线粒体内膜","叶绿体"],
+    "B","C","第三阶段是 [H]+O₂→H₂O 生成水、释放大量能量的一步，场所在线粒体内膜。记“一质二基三膜”：一质·二基·三膜。",
+    "知识性",0,1,0);
+  push("细胞呼吸","填空题","M1","无氧呼吸进行的场所是____；第二阶段____（填“产生/不产生”）ATP。",
+    null,"细胞质基质；产生","细胞质基质；不产生","无氧呼吸全程在细胞质基质。只在第一阶段释放少量能量，第二阶段仅消耗 [H] 还原丙酮酸，不产生 ATP——这是最常被忽略的点。",
+    "知识性",0,0,0);
+  push("光合作用","单选题","M1","光反应阶段进行的部位是？",
+    ["叶绿体基质","类囊体薄膜","细胞质基质","线粒体内膜"],
+    "C","B","光反应在类囊体薄膜上进行（H₂O 光解产生 [H] 和 O₂、合成 ATP）；暗反应在叶绿体基质。光合释放的 O₂ 来自水的光解，与 CO₂ 无关。",
+    "知识性",0,2,1);
+  push("酶与ATP","概念辨析题","M1","酶起催化作用的本质是“提供能量”还是“降低活化能”？反应后酶会被消耗吗？",
+    null,"提供能量；会被消耗","降低活化能；不会被消耗","酶的本质是降低化学反应的活化能来加快反应，不提供能量、不改变化学平衡；作为催化剂反应前后性质与数量不变。注意：过高温使酶变性不可逆，低温只降低活性。",
+    "理解性",1,0,0);
+  push("酶与ATP","实验探究题","M1","探究 pH 对酶活性的影响时，应如何控制温度？为什么？",
+    null,"随意","相同且适宜","遵循单一变量原则：只改变 pH，温度、底物浓度等其它条件都要保持相同且适宜，否则无法判断速率差异是由 pH 还是温度引起的。",
+    "习惯性",2,3,3);
+  push("细胞的增殖（有丝分裂·图像）","读图题","M1","某动物体细胞 2n=4 处于有丝分裂中期的细胞，此时染色体数:DNA分子数 = ?",
+    null,"1:1","1:2","中期着丝粒尚未分裂，每条染色体含 2 条姐妹染色单体、2 个 DNA，故染色体:DNA=1:2；后期着丝粒分裂后才变为 1:1。观察染色体形态数目最清晰的是中期。",
+    "理解性",0,1,3);
+  push("被动运输（渗透·质壁分离）","读图题","M1","将成熟植物细胞置于 0.3 g/mL 蔗糖溶液中，会发生____现象；若该细胞已死亡，则____（填“能/不能”）发生。",
+    null,"质壁分离；能","质壁分离；不能","外界浓度高于细胞液浓度时细胞失水，出现质壁分离。死细胞原生质层失去选择透过性，不能再质壁分离——常用此来验证细胞死活。",
+    "理解性",1,1,0);
+  // —— 必修2 ——
+  push("自由组合定律","计算题","M2","AaBb × AaBb（两对基因位于非同源染色体）后代中 aabb 的比例是？",
+    null,"3/16","1/16","每对单独算再相乘：aa=1/4、bb=1/4，独立组合后 aabb=(1/4)×(1/4)=1/16。9:3:3:1 是 (3:1)²，别把“表现型 3:1”错当基因型比例。",
+    "运算性",1,1,0);
+  push("伴性遗传与系谱分析","单选题","M2","伴 X 隐性遗传病（如红绿色盲）中，女患者的父亲和儿子？",
+    ["都一定患病","父亲患病、儿子不一定","都不患病","无法判断"],
+    "C","A","女患者基因型为 XᵃXᵃ：一条 X 来自父亲（父亲必带 Xᵃ → 必患病）；她传给儿子的一定是 Xᵃ（儿子必患病）。所以“父与子一定患病”是伴 X 隐性的标志，也是交叉遗传的表现。",
+    "理解性",1,0,0);
+  push("DNA的复制与碱基计算","计算题","M2","某 DNA 分子含腺嘌呤（A）100 个，复制 2 次共需游离的腺嘌呤多少个？",
+    null,"200","300","复制 n 次产生 2ⁿ 个 DNA，其中 2 个保留最初母链，真正新合成的 DNA 数 = 2ⁿ−1。需游离碱基 = (2ⁿ−1)×A = (4−1)×100 = 300 个。若问“第 n 次复制需”则为 2ⁿ⁻¹×A。",
+    "运算性",1,2,2);
+  push("减数分裂与受精作用","概念辨析题","M2","1 个精原细胞经减数分裂能形成____个精子；1 个卵原细胞能形成____个卵细胞。染色体减半发生在____分裂。",
+    null,"2；1；减数第二次","4；1；减数第一次","1 个精原细胞→4 个精子；1 个卵原细胞→1 个卵细胞＋3 个极体。染色体减半发生在减数第一次分裂（同源染色体分开），减Ⅱ只是姐妹染色单体分开。",
+    "知识性",0,0,0);
+  push("分离定律","计算题","M2","Aa 自交后代中，能稳定遗传（纯合）的个体所占比例是？",
+    null,"1/2","1/2","Aa×Aa → AA:Aa:aa = 1:2:1，纯合（AA 和 aa）共占 1/2。“能稳定遗传”指纯合子，不要只答显性个体。",
+    "理解性",1,1,0);
+  // —— 选必1 ——
+  push("内环境的组成与稳态","单选题","S1","血浆渗透压的大小主要与下列哪种离子有关？",
+    ["Na⁺、Cl⁻","K⁺、Ca²⁺","Mg²⁺、Fe²⁺","H⁺、CO₃²⁻"],
+    "B","A","细胞外液渗透压的 90% 以上来自 Na⁺ 和 Cl⁻。HCO₃⁻/H₂CO₃ 主要承担缓冲血浆 pH 的功能，不要与渗透压混淆。",
+    "知识性",0,0,0);
+  push("兴奋的传导与传递","读图题","S1","在突触处，兴奋只能由突触前膜传向突触后膜，原因是____。",
+    null,"突触后膜也能释放递质","神经递质只能由突触前膜释放，作用于突触后膜上的受体","突触小泡存在于突触前膜内，神经递质只能由前膜释放、作用于后膜受体，因此信号单向传递；而神经纤维上的兴奋（局部电流）是双向传导的。",
+    "理解性",0,0,0);
+  push("激素调节（血糖·甲状腺等）","读图题","S1","下丘脑—垂体—甲状腺之间通过分级调节维持甲状腺激素相对稳定，其调节方式称为____（正/负）反馈。",
+    null,"正","负","甲状腺激素分泌过多会抑制下丘脑和垂体分泌相应激素，属于（负）反馈调节，使激素水平维持相对稳定。",
+    "知识性",1,1,0);
+  // —— 选必2 ——
+  push("生态系统的结构与能量流动","概念辨析题","S2","流经某一生态系统的总能量是指？",
+    null,"该生态系统中所有生物所含能量之和","生产者所固定的太阳能总量","流经生态系统的总能量 = 生产者固定的太阳能总量，是能量流动的起点；并非“所有生物能量之和”。能量沿食物链单向流动、逐级递减，传递效率一般为 10%–20%。",
+    "理解性",0,0,0);
+  // —— 选必3 ——
+  push("基因工程：工具与操作程序","填空题","S3","基因工程的“分子手术刀”是____、“分子缝合针”是____，常用的运载体是____。",
+    null,"DNA连接酶；限制酶；动植物病毒","限制酶（限制性内切酶）；DNA连接酶；质粒","切割 DNA 用限制酶（识别并切断特定序列），拼接 DNA 片段用 DNA连接酶，把目的基因带进受体细胞常用质粒作运载体。三种工具别记混。",
+    "知识性",0,0,0);
+  return D;
+}
+
+/* ============ 存取（新版本 zcd_v1；若旧版 zcd_v0 有数据则尝试迁移） ============ */
+var OLD_ALIAS={// 旧点关键词 → 新考点（code）
+  "细胞呼吸":{m:"M1",c:"5.2"},"光合作用":{m:"M1",c:"5.3"},"遗传计算":{m:"M2",c:"1.2"},
+  "DNA复制":{m:"M2",c:"3.3"},"细胞分裂":{m:"M1",c:"6.1"},"伴性遗传":{m:"M2",c:"2.3"},
+  "酶与代谢":{m:"M1",c:"5.1"},"跨膜运输":{m:"M1",c:"4.2"}};
+var TYPE_ALIAS={"选择":"单选题","填空":"填空题","实验":"实验探究题","读图":"读图题","计算":"计算题","概念辨析":"概念辨析题"};
+function findPt(mid,code){ var m=MODULES.filter(function(x){return x.id===mid;})[0];
+  if(!m)return null; for(var j=0;j<m.pts.length;j++)if(m.pts[j].c===code)return m.pts[j]; return null;}
+function save(){ try{localStorage.setItem(LS,JSON.stringify(book)); setSaved(true);}catch(e){ alert("本机存储失败：内容可能超出浏览器上限，可先重置或精简（图片请勿直接贴入）。"); } }
+function load(){
+  try{ var s=localStorage.getItem(LS); if(s){book=JSON.parse(s); if(book&&book.length)return; if(book)return;} }catch(e){}
+  // 尝试迁移 v0
+  try{ var old=localStorage.getItem("zcd_v0"); if(old){ var a=JSON.parse(old); if(a&&a.length){
+    book=a.map(function(o){
+      var al=OLD_ALIAS[o.point]||null, pt=al?findPt(al.m,al.c):null;
+      return {id:Date.now()+Math.floor(Math.random()*1e4),
+        mod: al?al.m:(MODULES[0].id), kpt: pt?pt.n:("其他·"+(o.point||"未分类")),
+        type: TYPE_ALIAS[o.type]||o.type||"填空题",
+        stem:(o.q||o.note||""), opts:null, mine:(o.mine||""), ok:(o.ok||""),
+        ans:(o.note&&!o.q)?o.note:(o.note||""), why:(o.why||"知识性"), lv:+o.lv||0, stage:+o.stage||0, sched:+o.sched||0}; });
+    if(book&&book.length){ save(); return; }
+  }}}catch(e){}
+  book=seed();
+}
+function setSaved(on){ var el=document.getElementById("savedNote"); el.textContent=on?"✓ 已存本机":"示例数据（演示）"; }
+function resetDemo(){ if(!confirm("清空并恢复示例数据？"))return; book=seed(); save(); render(); }
+function $id(x){return document.getElementById(x);}
+function modName(id){ for(var i=0;i<MODULES.length;i++)if(MODULES[i].id===id)return MODULES[i].name; return id; }
+
+/* ============ 渲染：总览 ============ */
+function aggWhy(){ var m={}; WHYS.forEach(function(w){m[w]=0;});
+  book.forEach(function(c){ m[c.why]=(m[c.why]||0)+1; }); return m; }
+function aggType(){ var m={}; TYPES.forEach(function(t){m[t]=0;});
+  book.forEach(function(c){ if(m[c.type]!=null)m[c.type]++; else m[c.type]=1;}); return m; }
+function aggModMastery(){// 按模块聚合掌握度
+  var m={}; MODULES.forEach(function(x){m[x.id]={s:0,n:0};});
+  book.forEach(function(c){ if(m[c.mod]){m[c.mod].s+=[0,0.5,1][c.lv]; m[c.mod].n++;} });
+  var out={}; MODULES.forEach(function(x){ out[x.short]= m[x.id].n? Math.round(m[x.id].s/m[x.id].n*100):0; }); return out;
+}
+function radar(el,labels,vals){
+  var cv=$id(el); var S=210,cx=S/2,cy=S/2,R=72,N=labels.length;
+  var pts=function(v){return labels.map(function(_,i){var a=-Math.PI/2+i*2*Math.PI/N;
+    return [cx+Math.cos(a)*R*v, cy+Math.sin(a)*R*v];});};
+  var svg='<svg viewBox="0 0 '+S+' '+S+'" style="width:100%;max-width:230px;display:block;margin:0 auto">';
+  for(var ring=1;ring<=4;ring++){var rr=pts(ring/4);
+    svg+='<polygon points="'+rr.map(function(p){return p.join(",");}).join(" ")+'" fill="none" stroke="#e7eaf3"/>';}
+  for(var i=0;i<N;i++){var a=-Math.PI/2+i*2*Math.PI/N;
+    svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+Math.cos(a)*R)+'" y2="'+(cy+Math.sin(a)*R)+'" stroke="#eceef5"/>';
+    svg+='<text x="'+(cx+Math.cos(a)*(R+17))+'" y="'+(cy+Math.sin(a)*(R+17)+3)+'" text-anchor="middle" font-size="10" fill="#8a94a6">'+labels[i]+'</text>';}
+  var dvals=vals.map(function(v){return v/100;});
+  var shape=[]; for(i=0;i<N;i++){var a=-Math.PI/2+i*2*Math.PI/N;
+    shape.push((cx+Math.cos(a)*R*dvals[i])+","+(cy+Math.sin(a)*R*dvals[i]));}
+  svg+='<polygon points="'+shape.join(" ")+'" fill="rgba(79,70,229,.14)" stroke="#4f46e5" stroke-width="1.6"/>';
+  for(i=0;i<N;i++){var a=-Math.PI/2+i*2*Math.PI/N;
+    svg+='<circle cx="'+(cx+Math.cos(a)*R*dvals[i])+'" cy="'+(cy+Math.sin(a)*R*dvals[i])+'" r="2.4" fill="#4f46e5"/>';}
+  svg+='</svg>'; $id(el).innerHTML=svg;
+}
+function bars(el,obj,color){
+  var mx=Math.max.apply(0,Object.keys(obj).map(function(k){return obj[k];}).concat([1]));
+  var h=''; Object.keys(obj).forEach(function(k){
+    h+='<div class="bar-r"><span style="width:64px;flex:none">'+k+'</span><span class="b"><i style="width:'+(obj[k]/mx*100)+'%;background:'+color+'"></i></span><span style="width:26px;text-align:right;font-family:var(--mono);font-size:11px">'+obj[k]+'</span></div>';
+  }); $id(el).innerHTML=h;
+}
+function statRow(){
+  var n=book.length, solved=book.filter(function(c){return c.lv===2;}).length,
+      red=book.filter(function(c){return c.lv===0;}).length, due=dueCount();
+  $id("statRow").innerHTML='<div class="st"><div class="v">'+n+'</div><div class="k">累计错题</div></div>'+
+    '<div class="st"><div class="v r">'+red+'</div><div class="k">待攻克(红)</div></div>'+
+    '<div class="st"><div class="v g">'+solved+'</div><div class="k">已攻克(绿)</div></div>'+
+    '<div class="st"><div class="v a">'+due+'</div><div class="k">今天该复习</div></div>';
+}
+function dueCount(){ return book.filter(function(c){return c.lv<2 && c.sched<=0;}).length; }
+
+/* ============ 渲染：错题本 ============ */
+var curType="全部", groupBy="type";
+function renderChips(){
+  var el=$id("typeChips"); el.innerHTML="";
+  var list=["全部"].concat(TYPES);
+  list.forEach(function(t){
+    var b=document.createElement("button"); b.className="chip"+(curType===t?" on":"");
+    b.textContent=t; b.onclick=function(){curType=t;renderBook();renderChips();};
+    el.appendChild(b);
+  });
+}
+function filterBook(){ return curType==="全部"?book:book.filter(function(c){return c.type===curType;}); }
+function esc(x){ return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function optTxt(c,field){// 把“我选/应得”里的字母映射成“B · 内容”
+  var s=c[field]||""; if(!c.opts||c.opts.length<2)return s;
+  var out=[]; for(var k=0;k<s.length;k++){
+    var L=s.charAt(k).toUpperCase(), idx=L.charCodeAt(0)-65;
+    out.push(c.opts[idx]!=null? L+" · "+c.opts[idx] : L);
+  } return out.join("　");
+}
+function cardHtml(c){
+  var lvN=["红","黄","绿"][c.lv];
+  var optH="";
+  if(c.opts&&c.opts.length){ optH='<div class="opts">'+c.opts.map(function(o,i){
+    return '<div class="optLine"><b>'+String.fromCharCode(65+i)+'</b>'+esc(o)+'</div>';}).join("")+'</div>'; }
+  return '<div class="card"><div class="krow">'+
+    '<span class="dot '+['r','a','g'][c.lv]+'"></span>'+
+    '<span class="tag">'+esc(modName(c.mod))+' · '+esc(c.kpt)+'</span>'+
+    '<span class="tag">'+esc(c.type)+'</span>'+
+    '<span class="tag w"><i class="cd"></i>'+esc(c.why)+'</span>'+
+    '<span style="margin-left:auto;color:#8a94a6;font-family:var(--mono);font-size:10px">'+(c.stage>=4?"已清仓":"D"+OFF_DAY[Math.min(c.stage,4)])+'</span></div>'+
+    '<div class="qTxt">'+esc(c.stem)+'</div>'+
+    optH+
+    '<div class="ansline"><span class="my">我写/选：<b>'+esc(optTxt(c,"mine")||"—")+'</b></span><span class="okb">应得：<b>'+esc(optTxt(c,"ok")||"—")+'</b></span>'+
+    '<span style="color:#8a94a6">掌握 · '+lvN+'</span></div>'+
+    (c.ans? '<details class="sol"><summary>💡 解析 / 错因<span class="arr">›</span></summary><div class="in">'+esc(c.ans)+
+      (c.why?'<span class="why">归因 · '+esc(c.why)+'</span>':"")+'</div></details>':"")+
+    '<div class="acts"><button class="abtn" onclick="reviewOne('+c.id+')">✓ 我复习了</button>'+
+    '<button class="abtn" onclick="promote('+c.id+')">感觉稳了 → 升绿</button></div></div>';
+}
+function groupKey(c){ return groupBy==="type"?c.type:c.mod+"|"+c.kpt; }
+function groupTitle(c){ return groupBy==="type"?c.type:(modName(c.mod)+" · "+c.kpt); }
+function renderBook(){
+  var list=filterBook();
+  if(!list.length){ $id("bookList").innerHTML='<div class="empty">没有错题，去录一道或重置示例看看</div>'; return; }
+  var groups={}; list.forEach(function(c){ var k=groupKey(c); (groups[k]=groups[k]||[]).push(c); });
+  var h=""; Object.keys(groups).forEach(function(k){
+    var g=groups[k];
+    h+='<div class="grp"><div class="grp-t">'+esc(groupTitle(g[0]))+'<span class="n">'+g.length+' 题</span>'+
+      '<button class="gtool" data-g="'+k.replace(/"/g,"&quot;")+'">⬇ 导出本组</button></div>'+
+      g.map(cardHtml).join("")+'</div>';
+  });
+  $id("bookList").innerHTML=h;
+  $id("bookList").querySelectorAll(".gtool").forEach(function(b){
+    b.onclick=function(){ var gk=b.getAttribute("data-g"); var key=groupBy==="point"?gk.split("|")[1]:gk;
+      exportList(groupBy==="point"?("考点·"+key):key, book.filter(function(c){ return groupKey(c)===gk; })); };
+  });
+}
+
+/* ============ 渲染：今日复习 ============ */
+function renderToday(){
+  var due=book.filter(function(c){return c.lv<2 && c.sched<=0;});
+  $id("todayHead").textContent= due.length? ("今天该攻克 "+due.length+" 张，清完会升一点掌握度") : "今天没有到期的，去录新题或提前复习。";
+  $id("todayList").innerHTML= due.length? due.map(function(c){ return '<div class="grp">'+cardHtml(c)+'</div>'; }).join("") : "";
+}
+
+/* 动作 */
+function reviewOne(id){ var c=byId(id); if(!c)return;
+  c.stage=Math.min(c.stage+1,4); c.sched=c.stage>=4?999:OFF_DAY[c.stage];
+  if(c.stage>=2&&c.lv===0)c.lv=1;
+  save(); render(); }
+function promote(id){ var c=byId(id); if(!c)return; c.lv=2; c.stage=4; c.sched=999; save(); render(); }
+function byId(id){ for(var i=0;i<book.length;i++)if(book[i].id===id)return book[i]; return null; }
+
+/* tabs */
+function setTab(v){
+  ["dash","book","today"].forEach(function(x){ $id("v-"+x).style.display = x===v?"":"none"; });
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.toggle("on",t.dataset.v===v);});
+  if(v==="today")renderToday();
+}
+document.querySelectorAll(".tab").forEach(function(t){t.onclick=function(){setTab(t.dataset.v);};});
+
+/* ============ 录入：表单初始化 + 联动 ============ */
+function fillT(){ var T=$id("fT"); if(T.options.length)return;
+  TYPES.forEach(function(x){T.add(new Option(x,x));}); }
+function fillM(){ var M=$id("fM"); if(M.options.length)return;
+  MODULES.forEach(function(m){M.add(new Option(m.name,m.id));}); }
+function fillP(){// 模块 → 考点 级联
+  var P=$id("fP"); var mid=$id("fM").value; P.innerHTML="";
+  P.add(new Option("（请选择该模块下的考点）",""));
+  MODULES.filter(function(m){return m.id===mid;})[0].pts.forEach(function(pt){
+    P.add(new Option("　"+pt.c+" "+pt.n, pt.c)); });
+}
+function isChoice(t){ return t==="单选题"||t==="多选题"; }
+function onType(){
+  var t=$id("fT").value, ch=isChoice(t);
+  $id("optBox").style.display= ch? "block":"none";
+  var mine=$id("mineBox"), ok=$id("okBox");
+  if(ch){
+    var opt='<div><select id="fMine"><option value="">（选择你的选项）</option></select></div>';
+    mine.innerHTML='<label>我的选项 <b>*</b></label>'+opt;
+    ok.innerHTML='<label>正确选项 <b>*</b></label><div><select id="fOk"><option value="">（选择正确选项）</option></select></div>';
+    ["A","B","C","D"].forEach(function(L){ var s1=$id("fMine"),s2=$id("fOk");
+      s1.add(new Option(L,L)); s2.add(new Option(L,L)); });
+  }else{
+    mine.innerHTML='<label>我的答案 <b>*</b></label><div><input id="fMine" placeholder="我写了 / 我选了："></div>';
+    ok.innerHTML='<label>正确答案 <b>*</b></label><div><input id="fOk" placeholder="标准答案："></div>';
+  }
+}
+function addModal(){ $id("mk").classList.add("on"); onType(); }
+function closeAdd(){ $id("mk").classList.remove("on"); }
+function val(id){ var el=$id(id); return el? el.value.trim():""; }
+function addOne(){
+  var t=$id("fT").value, stem=val("fQ"), kc=$id("fP").value, mid=$id("fM").value;
+  var pt=findPt(mid,kc), ans=val("fAns");
+  if(!stem){ alert("题干还没填——请把题目原样贴进来（OCR 文本也行）"); return; }
+  if(!pt){ alert("请把考点选到具体一项（先选模块，再选考点）"); return; }
+  if(!ans){ alert("解析是复习的关键，先写一句“为什么错/正确思路”再入库（哪怕一句，回头可补）"); return; }
+  var ch=isChoice(t), opts=null, mine="", ok="";
+  if(ch){ opts=["fOA","fOB","fOC","fOD"].map(val); mine=$id("fMine").value; ok=$id("fOk").value;
+    if(!mine){ alert("请选择你的选项"); return; } if(!ok){ alert("请选择正确选项"); return; } }
+  else{ mine=val("fMine"); ok=val("fOk");
+    if(!mine){ alert("请填“我的答案”（方便对比复盘）"); return; } if(!ok){ alert("请填“正确答案”"); return; } }
+  book.push({id:Date.now(), kpt:pt.n, type:t, mod:mid, stem:stem, opts:opts, mine:mine, ok:ok,
+    ans:ans, why:$id("fW").value, lv:+$id("fL").value, stage:0, sched:0});
+  ["fQ","fAns","fOA","fOB","fOC","fOD","fMine","fOk"].forEach(function(x){ var el=$id(x); if(el&&x!=="fMine"&&x!=="fOk")el.value=""; });
+  closeAdd(); save(); render();
+}
+
+/* 总 render */
+function render(){
+  statRow();
+  var mm=aggModMastery();
+  radar("radar",MODULES.map(function(x){return x.short;}), MODULES.map(function(x){return mm[x.short];}));
+  bars("whyBars",aggWhy(),"#f59e0b");
+  bars("typeBars",aggType(),"#4f46e5");
+  renderChips(); renderBook(); setSaved(false);
+}
+function setGroup(g){ groupBy=g; document.getElementById("grpType").classList.toggle("on",g==="type");
+  document.getElementById("grpPoint").classList.toggle("on",g==="point"); renderBook(); }
+
+/* init */
+fillT(); fillM(); fillP(); fillW();
+load(); render();
+function fillW(){ var W=$id("fW"); if(W.options.length)return;
+  WHYS.forEach(function(x){W.add(new Option(x,x));}); }
+$id("mk").addEventListener("click",function(e){if(e.target.id==="mk")closeAdd();});
+</script>
+
+<!-- 导出 PDF（按组/一键全部）：html2canvas+jsPDF；无网则提示 Ctrl+P -->
+<script>
+function ensurePdfLib2(){
+  return new Promise(function(res){
+    function load(u,cb){ var s=document.createElement("script"); s.src=u;
+      s.onload=function(){cb(true);}; s.onerror=function(){cb(false);}; document.head.appendChild(s); }
+    if(window.html2canvas && (window.jspdf||window.jsPDF)) return res(true);
+    load("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",function(a){
+      if(!a) return res(false);
+      load("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",function(b){
+        res(!!(window.html2canvas && (window.jspdf||window.jsPDF)));
+      });
+    });
+  });
+}
+function esc2(x){ return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function optTxt2(c,field){ var s=c[field]||""; if(!c.opts||c.opts.length<2)return s;
+  var out=[]; for(var k=0;k<s.length;k++){ var L=s.charAt(k).toUpperCase(), idx=L.charCodeAt(0)-65;
+    out.push(c.opts[idx]!=null? L+"．"+c.opts[idx] : L);} return out.join("　"); }
+async function exportList(title,cards){
+  if(!cards || !cards.length){ alert("这一组还没有错题，暂时没得导出"); return; }
+  var ok=await ensurePdfLib2();
+  var stage=document.createElement("div");
+  var lvT=["红 · 还没稳","黄 · 有点晃","绿 · 已攻克"];
+  stage.style.cssText="position:relative;width:780px;margin:0 auto;padding:20px 24px;background:#fff;color:#1e293b;font-family:sans-serif";
+  var now=new Date();
+  var h='<div style="font-size:20px;font-weight:700">错题自诊册 · '+esc2(title)+'</div>'+
+    '<div style="color:#8a94a6;font-size:12px;margin:4px 0 14px">共 '+cards.length+' 题 · 生成于 '+now.getFullYear()+"/"+(now.getMonth()+1)+"/"+now.getDate()+' · 含 题干/选项/答案/解析</div>';
+  cards.forEach(function(c,i){
+    var optH="";
+    if(c.opts&&c.opts.length) optH='<div style="margin:4px 0 2px;font-size:12.5px;color:#334155">'+c.opts.map(function(o,j){
+      return '<div>'+String.fromCharCode(65+j)+'. '+esc2(o)+'</div>';}).join("")+'</div>';
+    h+='<div style="border-top:1px solid #eceef5;padding:10px 2px">'+
+      '<div style="font-size:12px;color:#5a6072">'+esc2(modName(c.mod))+' · '+esc2(c.kpt)+' · '+esc2(c.type)+' · 错因：'+esc2(c.why)+'</div>'+
+      '<div style="font-size:13.5px;margin:4px 0">'+(i+1)+". "+esc2(c.stem)+'</div>'+optH+
+      '<div style="font-size:12px;color:#5a6072">我的答案：<span style="color:#a3372f">'+esc2(optTxt2(c,"mine")||"—")+'</span>　应得：<span style="color:#2f7d50">'+esc2(optTxt2(c,"ok")||"—")+'</span>　掌握：'+lvT[c.lv]+'</div>'+
+      (c.ans?'<div style="font-size:12.5px;margin-top:5px;background:#f6f8fc;border-radius:7px;padding:7px 10px"><b>解析：</b>'+esc2(c.ans)+'</div>':"")+
+      '</div>';
+  });
+  h+='<div style="margin-top:14px;font-size:11px;color:#a8aebe">小苏 · 苏格拉底式伴学 · 错题自诊册</div>';
+  stage.innerHTML=h;
+  document.body.appendChild(stage);
+  document.body.classList.add("exporting");
+  await new Promise(function(r){setTimeout(r,150);});
+  function cleanup(){ document.body.classList.remove("exporting"); if(stage.parentNode) stage.parentNode.removeChild(stage); }
+  if(!ok){ cleanup(); alert("未联网暂时不能直接生成 PDF；可按 Ctrl+P → 目标选「另存为 PDF」"); return; }
+  try{
+    var canvas=await window.html2canvas(stage,{scale:2,backgroundColor:"#ffffff",logging:false,useCORS:true});
+    var JS=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
+    var imgW=canvas.width, sliceH=Math.floor(imgW*841.89/595.28), pdf=new JS("p","pt","a4"), pos=0, first=true;
+    while(pos<canvas.height){
+      var hgt=Math.min(sliceH,canvas.height-pos);
+      var pc=document.createElement("canvas"); pc.width=imgW; pc.height=hgt;
+      pc.getContext("2d").drawImage(canvas,0,pos,imgW,hgt,0,0,imgW,hgt);
+      if(!first)pdf.addPage(); first=false;
+      pdf.addImage(pc.toDataURL("image/jpeg",0.92),"JPEG",0,0,595.28,595.28*(hgt/imgW));
+      pos+=hgt;
+    }
+    pdf.save("错题-"+title+".pdf");
+  }catch(e){ console.warn("export err",e); alert("生成失败；可按 Ctrl+P → 另存为 PDF"); }
+  finally{ cleanup(); }
+}
+</script>
+</body>
+</html>
