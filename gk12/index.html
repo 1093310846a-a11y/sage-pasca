@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>高中生物 · 近年高频考点 12 讲</title>
+<link rel="icon" href="data:,">
+<!-- 样式参考 Figma Make「高中生物前端」；内容=近年高频考点12个；引擎驱动；本地先看未推送 -->
+<style>
+  :root{
+    --bg:#f0f4ff;--card:#fff;--line:#e2e8f0;--line2:#f1f5f9;
+    --ink:#1e293b;--ink2:#64748b;--ink3:#94a3b8;
+    --indigo:#6366f1;--blue:#3b82f6;--blue-soft:#eff6ff;
+    --red:#ef4444;--red-soft:#fef2f2;--amber:#d97706;--amber-soft:#fffbeb;
+    --green:#16a34a;--violet:#7c3aed;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.7}
+  .mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+  .hidden{display:none!important}
+
+  .hero{position:relative;overflow:hidden;color:#fff;background:linear-gradient(120deg,#6366f1,#3b82f6 55%,#22d3ee)}
+  .hero .dots{position:absolute;inset:0;opacity:.12;pointer-events:none;
+    background-image:radial-gradient(circle,#fff 1.2px,transparent 1.2px);background-size:38px 38px}
+  .hero-in{position:relative;max-width:1060px;margin:0 auto;padding:40px 24px 30px}
+  .hero-top{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .logo{width:54px;height:54px;border-radius:16px;background:rgba(255,255,255,.2);
+    display:flex;align-items:center;justify-content:center;font-size:27px;flex:none;box-shadow:0 8px 18px rgba(0,0,0,.12)}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;color:rgba(255,255,255,.62);margin-bottom:5px}
+  .hero h1{font-size:27px;font-weight:900;letter-spacing:-.01em;text-shadow:0 2px 8px rgba(0,0,0,.15)}
+  .hero p{font-size:13.5px;color:rgba(255,255,255,.8);margin-top:5px}
+  .hero-actions{margin-left:auto;display:flex;gap:10px;align-items:flex-start}
+  .btn-white{background:rgba(255,255,255,.92);color:#4f46e5;border:none;border-radius:10px;padding:8px 14px;
+    font:inherit;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+  .btn-white:hover{transform:translateY(-1px)}
+  .stats{display:flex;gap:14px;margin-top:20px;flex-wrap:wrap}
+  .stat{background:rgba(255,255,255,.16);border-radius:12px;padding:7px 15px}
+  .stat .v{font-size:19px;font-weight:900;font-family:'JetBrains Mono',monospace}
+  .stat .k{font-size:11.5px;color:rgba(255,255,255,.75)}
+
+  .filterbar{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+  .filter-in{max-width:1060px;margin:0 auto;padding:10px 24px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .fbtn{border:1px solid transparent;background:none;font:inherit;font-size:13.5px;color:var(--ink2);
+    padding:6px 13px;border-radius:10px;cursor:pointer}
+  .fbtn.on{background:#eef2ff;color:#4f46e5;border-color:#c7d2fe;font-weight:600}
+  .count{margin-left:auto;font-size:12px;color:var(--ink2);font-family:'JetBrains Mono',monospace}
+
+  .grid{max-width:1060px;margin:0 auto;padding:22px 24px 34px;display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+  .card{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:18px;cursor:pointer;
+    display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 3px rgba(15,23,42,.04);transition:transform .18s,box-shadow .18s}
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(99,102,241,.12)}
+  .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .tile{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+  .pill{display:inline-flex;align-items:center;gap:3px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid transparent;letter-spacing:.02em}
+  .card h3{font-size:15px;font-weight:700;line-height:1.35}
+  .card .ch{font-size:11.5px;color:var(--ink3);margin-top:2px}
+  .card .lead{font-size:12.5px;color:var(--ink2);line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .card-foot{display:flex;align-items:center;gap:6px;margin-top:auto}
+  .freqline{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink3)}
+  .go{font-size:12px;color:#4f46e5;font-weight:600}
+
+  .foot-note{max-width:1060px;margin:0 auto;padding:0 24px 34px;text-align:center;font-size:12px;color:var(--ink3)}
+
+  /* ===== Detail ===== */
+  .backbar{position:sticky;top:0;z-index:6;background:rgba(255,255,255,.94);border-bottom:1px solid var(--line);
+    backdrop-filter:blur(6px);padding:9px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .back{background:none;border:none;font:inherit;font-size:13.5px;color:var(--ink2);cursor:pointer;font-weight:500}
+  .back:hover{color:#4f46e5}.back .a{font-size:17px}
+  .sep{color:#e2e8f0}
+  .eyebrow2{font-size:11px;color:var(--ink3);font-family:'JetBrains Mono',monospace;letter-spacing:.1em}
+  .bar-actions{margin-left:auto;display:flex;gap:8px}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--ink2);border-radius:9px;padding:5px 12px;font:inherit;
+    font-size:12.5px;cursor:pointer;font-weight:600;transition:.15s}
+  .btn:hover{border-color:#818cf8;color:#4f46e5}
+  .btn.pk{background:#eef2ff;color:#4f46e5;border-color:#c7d2fe}
+
+  .detail{max-width:820px;margin:0 auto;padding:24px 22px 60px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .bdr{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:8px;font-size:11.5px;font-weight:600;font-family:'JetBrains Mono',monospace}
+  .dtitle{font-size:28px;font-weight:700;line-height:1.15;letter-spacing:-.01em}
+  .dtitle .sub{color:var(--ink3);font-weight:400;font-size:17px;margin-left:6px}
+  .dch{font-size:13px;color:var(--ink3);margin-top:6px}
+  .sect{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:20px;margin-top:18px;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+  .shead{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap}
+  .shead .num{color:#818cf8;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;font-weight:600}
+  .shead h2{font-size:17px;font-weight:700}
+  .shead .hint{font-size:12px;color:var(--ink3);margin-left:auto;display:none}
+  @media(min-width:620px){.shead .hint{display:inline}}
+  .ptext{font-size:14px;color:var(--ink2);line-height:1.85;margin-top:12px}
+  .ptext b{color:var(--ink)} .ptext .bl{color:#2563eb;font-weight:600} .ptext .vi{color:var(--violet);font-weight:600}
+  ul.pts{margin:12px 0 0;padding:0;list-style:none}
+  ul.pts li{display:flex;gap:9px;font-size:13.5px;color:var(--ink2);line-height:1.75;padding:3px 0}
+  ul.pts li::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:#c7d2fe;margin-top:9px}
+  ul.pts li b{color:var(--ink)}
+  .formula{margin-top:12px;background:var(--blue-soft);border:1px solid #bfdbfe;border-left:3px solid var(--blue);
+    border-radius:8px;padding:11px 16px;font-family:'JetBrains Mono',monospace;font-size:13.5px;color:#1d4ed8;letter-spacing:.02em;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+  thead{background:#f8fafc}
+  th{text-align:left;font-size:11px;color:var(--ink3);font-weight:600;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;padding:9px 12px}
+  td{padding:9px 12px;border-bottom:1px solid var(--line2);vertical-align:top;color:var(--ink2)}
+  tr:last-child td{border-bottom:none}
+  td.lbl{color:#4f46e5;font-weight:600}
+  td.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .note{margin-top:12px;font-size:12.5px;color:#92400e;background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;padding:9px 12px;line-height:1.7}
+  details{border:1px solid var(--line);border-radius:10px;padding:0;margin-top:10px;background:#fff}
+  details summary{cursor:pointer;padding:10px 13px;font-size:13.5px;font-weight:600;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px}
+  details summary::-webkit-details-marker{display:none}
+  details summary .arr{margin-left:auto;color:var(--ink3);transition:transform .18s}
+  details[open] summary .arr{transform:rotate(90deg)}
+  details .in{padding:0 13px 12px 30px}
+  details .in p{font-size:13px;color:var(--ink2);line-height:1.8}
+  .mmwrap{margin-top:12px;border:1px solid var(--line2);border-radius:12px;background:#fcfdff;overflow:auto;padding:6px}
+  .mmwrap .mt{font-size:11px;color:var(--ink3);font-family:'JetBrains Mono',monospace;letter-spacing:.12em;padding:4px 8px 0}
+  .mmwrap svg{display:block;margin:0 auto;max-width:100%;height:auto}
+
+  .mk{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
+  .mk.on{display:flex}
+  .mk-card{background:#fff;border-radius:16px;max-width:min(940px,96vw);max-height:92vh;overflow:auto;padding:16px 18px}
+  .mk-card h3{font-size:15px;margin-bottom:10px}
+  .mk-card .mmwrap{margin-top:0}
+  .mkx{float:right;cursor:pointer;color:var(--ink3);font-size:22px;line-height:1;margin:-4px -2px 0 0}
+  .tag-line{font-size:11px;color:var(--ink3)}
+
+  /* ===== Print / PDF ===== */
+  #printBody{display:none}
+  body.printing #printBody{display:block}
+  body.exporting #appShell{display:none!important}
+  @media print{
+    body{background:#fff}
+    body.printing .app-shell{display:none!important}
+    body.printing .no-print{display:none!important}
+    .sect{box-shadow:none;page-break-inside:avoid;break-inside:avoid}
+    .mmwrap{overflow:visible}
+    details{page-break-inside:avoid;break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="app-shell" id="appShell">
+  <!-- ===== Home ===== -->
+  <div id="home">
+    <div class="hero">
+      <div class="dots"></div>
+      <div class="hero-in">
+        <div class="hero-top">
+          <div class="logo">🧬</div>
+          <div>
+            <div class="eyebrow">GAOKAO · HIGH SCHOOL BIOLOGY</div>
+            <h1>近年高考 · 高频考点 12 讲</h1>
+            <p>近年高考生物核心高频考点 · 系统精讲 · 每讲配题 · 附完整复习脑图</p>
+          </div>
+          <div class="hero-actions">
+            <button class="btn-white" onclick="openMasterMap()">🧠 12 考点 · 总复习脑图</button>
+          </div>
+        </div>
+        <div class="stats" id="heroStats"></div>
+      </div>
+    </div>
+    <div class="filterbar"><div class="filter-in" id="filters"></div></div>
+    <div class="grid" id="grid"></div>
+    <div class="foot-note">点击卡片进入该考点精讲 · 每讲可一键下载 PDF（含折叠内容）· 未发布版本</div>
+  </div>
+
+  <!-- ===== Detail ===== -->
+  <div id="detail" class="hidden">
+    <div class="backbar no-print">
+      <button class="back" onclick="goHome()"><span class="a">←</span> 返回考点列表</button>
+      <span class="sep">|</span><span class="eyebrow2" id="dEyebrow"></span>
+      <div class="bar-actions">
+        <button class="btn pk" onclick="exportPdf(curId)">⬇ 下载 PDF（含折叠）</button>
+      </div>
+    </div>
+    <div class="detail" id="detailBox"></div>
+  </div>
+
+  <!-- master mind map modal -->
+  <div class="mk" id="masterMk">
+    <div class="mk-card">
+      <span class="mkx" onclick="closeMaster()">×</span>
+      <h3>近年高考高频考点 · 总复习脑图</h3>
+      <div class="mmwrap"><div class="mt">MASTER MAP</div><div id="masterMap"></div></div>
+      <div class="tag-line" style="margin-top:8px">覆盖下方 12 个考点；每一分支可在对应卡片的"考点精讲"里看细节。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 离屏 PDF 合成容器（html2canvas 用） -->
+<div id="pdfStage" style="position:absolute;left:-10000px;top:0;width:820px;z-index:-1;background:#fff;display:none"></div>
+<!-- print fallback body -->
+<div id="printBody"></div>
+
+<script src="data.js"></script>
+<script>
+var FILTERS=[["全部",""],["必修一","必修1"],["必修二","必修2"],["高频","高频"],["中频","中频"]];
+var curF="", curId=null;
+
+/* ---------- 脑图 ---------- */
+function mmSvg(root){
+  var VW=880,PAD=14,rowH=42,nodeW=116,nodeH=28,dx=150,top=22;
+  var leaves=0,maxD=0;
+  (function assign(n,d){n._d=d;if(d>maxD)maxD=d;
+    if(!n.c||!n.c.length){leaves++;n._leaf=leaves;}else n.c.forEach(function(c){assign(c,d+1);});})(root,0);
+  (function y(n){if(!n.c||!n.c.length){n._y=top+(n._leaf-1)*rowH;}
+    else{n.c.forEach(y);var ys=n.c.map(function(c){return c._y;});n._y=(Math.min.apply(0,ys)+Math.max.apply(0,ys))/2;}})(root);
+  var H=top*2+(leaves-1)*rowH+nodeH;
+  var W=PAD*2+(maxD+1)*dx+nodeW*0.5;
+  function x(d){return PAD+d*dx;}
+  var s='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="width:'+W+'px;max-width:100%">';
+  function edges(n){if(n.c)n.c.forEach(function(c){var x1=x(n._d)+nodeW,y1=n._y+nodeH/2,x2=x(c._d),y2=c._y+nodeH/2,m=(x1+x2)/2;
+    s+='<path d="M'+x1+' '+y1+' C'+m+' '+y1+','+m+' '+y2+','+x2+' '+y2+'" fill="none" stroke="#c7d2fe" stroke-width="1.4"/>';edges(c);});}
+  edges(root);
+  (function d(n){var X=x(n._d),Y=n._y,fill="#fff",col="#475569",fc="#dbe4f0",lw="1";
+    if(n===root){fill="#4f46e5";col="#fff";fc="none";}
+    else if(n._d===1){fill="#eef2ff";col="#4338ca";fc="#c7d2fe";}
+    else{fill="#fff";col="#475569";fc="#e2e8f0";}
+    s+='<rect x="'+X+'" y="'+Y+'" width="'+nodeW+'" height="'+nodeH+'" rx="8" fill="'+fill+'" stroke="'+fc+'" stroke-width="'+lw+'"/>';
+    var t=(n.n||"")+(n.f?" ·"+n.f:""); if(t.length>12)t=t.slice(0,11)+"…";
+    s+='<text x="'+(X+nodeW/2)+'" y="'+(Y+nodeH/2+4)+'" font-size="12" text-anchor="middle" fill="'+col+'">'+esc(t)+'</text>';
+    if(n.c)n.c.forEach(d);})(root);
+  s+='</svg>';return s;
+}
+function esc(x){return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+/* ---------- Home ---------- */
+function groupOf(it){return it.ch.indexOf("必修2")===0?"必修2":(it.ch.indexOf("必修1")===0?"必修1":(it.ch.slice(0,3)));}
+function heroStats(){
+  var el=document.getElementById("heroStats");
+  var n1=HZP.filter(function(x){return x.freq==="高频";}).length;
+  el.innerHTML='<div class="stat"><div class="v">'+HZP.length+'</div><div class="k">高频考点</div></div>'+
+    '<div class="stat"><div class="v">'+n1+'</div><div class="k">近年高频</div></div>'+
+    '<div class="stat"><div class="v">2</div><div class="k">必修 1 / 2</div></div>'+
+    '<div class="stat"><div class="v">PDF</div><div class="k">每讲可下载</div></div>';
+}
+function pillTxt(f){ if(f==="高频")return ['#fef2f2','#ef4444','#fecaca'];
+  if(f==="中频")return ['#fffbeb','#d97706','#fde68a'];
+  return ['#eef2ff','#4f46e5','#c7d2fe'];}
+function renderF(){
+  var b=document.getElementById("filters"); b.innerHTML="";
+  FILTERS.forEach(function(f){
+    var el=document.createElement("button"); el.className="fbtn"+(curF===f[1]?" on":"");
+    el.textContent=f[0]; el.onclick=function(){curF=f[1];renderF();renderG();};
+    b.appendChild(el);
+  });
+  var c=document.createElement("span"); c.className="count";
+  var list=HZP.filter(match); c.textContent=list.length+" / "+HZP.length+" 个考点";
+  b.appendChild(c);
+}
+function match(t){ if(curF==="")return true; return t.freq===curF||groupOf(t)===curF;}
+function renderG(){
+  var g=document.getElementById("grid"); g.innerHTML="";
+  HZP.filter(match).forEach(function(t){
+    var c=document.createElement("div"); c.className="card";
+    var col=pillTxt(t.freq);
+    c.innerHTML='<div class="card-top"><div class="tile" style="background:'+t.tile+'">'+t.icon+'</div>'+
+      '<span class="pill" style="background:'+col[0]+';color:'+col[1]+';border-color:'+col[2]+'">'+t.freq+'</span></div>'+
+      '<div><h3>'+t.title+'</h3><div class="ch">'+t.ch+' · '+t.pos+'</div></div>'+
+      '<div class="lead">'+t.lead+'</div>'+
+      '<div class="card-foot"><span class="pill" style="background:#f1f5f9;color:#64748b;border-color:#e2e8f0">近5年 '+t.freqN+' 次</span>'+
+      '<span class="freqline">🧠 脑图 · 📥 PDF</span><span class="go">进入精讲 →</span></div>';
+    c.onclick=function(){showDetail(t.id);};
+    g.appendChild(c);
+  });
+}
+function goHome(){curId=null;$("home").classList.remove("hidden");$("detail").classList.add("hidden");window.scrollTo(0,0);}
+function $(id){return document.getElementById(id);}
+function showDetail(id){curId=id;var it=byId(id);
+  $("home").classList.add("hidden");$("detail").classList.remove("hidden");
+  $("dEyebrow").textContent="BIOLOGY · "+(it.ch||"");
+  $("detailBox").innerHTML=detailHTML(it,false);
+  window.scrollTo(0,0);}
+function byId(id){for(var i=0;i<HZP.length;i++)if(HZP[i].id===id)return HZP[i];return HZP[0];}
+
+/* ---------- detail html ---------- */
+function detailHTML(it,exp){
+  var open=exp?" open":"";
+  var h='<div class="badges">'+
+    '<span class="bdr" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe">📊 近5年 '+it.freqN+' 次</span>'+
+    '<span class="bdr" style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca">🔥 '+it.freq+'</span>'+
+    '<span class="bdr" style="background:#fffbeb;color:#d97706;border:1px solid #fde68a">⚠ 易错高发</span>'+
+    '<span class="bdr" style="background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe">📝 '+it.types+'</span></div>';
+  h+='<div class="dtitle">'+it.title+'<span class="sub">'+(it.sub||"")+'</span></div><div class="dch">'+it.ch+' · '+it.pos+'</div>';
+  var n=0;
+  (it.blocks||[]).forEach(function(b){
+    n++;
+    h+='<section class="sect"><div class="shead"><span class="num">'+String(n).padStart(2,"0")+'</span><h2>'+b.t+'</h2>'+(b.hint?'<span class="hint">'+b.hint+'</span>':"")+'</div>';
+    if(b.p)(b.p).forEach(function(x){h+='<div class="ptext">'+x+'</div>';});
+    if(b.list){h+='<ul class="pts">';b.list.forEach(function(x){h+='<li>'+x+'</li>';});h+='</ul>';}
+    if(b.formula)h+='<div class="formula">'+b.formula+'</div>';
+    if(b.tbl){h+='<table><thead><tr>';b.tbl.head.forEach(function(x){h+='<th>'+x+'</th>';});h+='</tr></thead><tbody>';
+      b.tbl.rows.forEach(function(r){h+='<tr>';r.forEach(function(cell,i){h+='<td'+(i===0?' class="lbl"':"")+(/→|[A-Z₀-₉]/.test(cell)?'':'')+'>'+cell+'</td>';});h+='</tr>';});
+      h+='</tbody></table>';}
+    if(b.note)h+='<div class="note">'+b.note+'</div>';
+    h+='</section>';
+  });
+  /* 陷阱（折叠） */
+  if(it.traps&&it.traps.length){
+    h+='<section class="sect"><div class="shead"><span class="num">'+String(n+1).padStart(2,"0")+'</span><h2>易错诊断 · 说法辨真伪</h2><span class="hint">点开看对错与归因</span></div>';
+    it.traps.forEach(function(t,i){
+      var right = /^(对|正确|√|true|是)/.test(t.ok);
+      h+='<details'+open+'><summary><span style="color:'+(right?"#16a34a":"#ef4444")+'">'+(right?"✓":"✗")+'</span>'+esc(t.t)+'<span class="arr">›</span></summary><div class="in"><p><b style="color:'+(right?"#16a34a":"#ef4444")+'">'+(right?"正确":"错误")+'。</b>'+esc(t.a)+'</p><p style="color:#94a3b8;font-size:12px">'+esc(t.why)+'</p></div></details>';
+    });
+    h+='</section>';n++;
+  }
+  /* 例题（折叠） */
+  if(it.quiz&&it.quiz.length){
+    h+='<section class="sect"><div class="shead"><span class="num">'+String(n+1).padStart(2,"0")+'</span><h2>带练 · 高考式题目</h2><span class="hint">先自己做，再点开看解析</span></div>';
+    it.quiz.forEach(function(q,qi){
+      var opts=q.o.map(function(o,oi){return String.fromCharCode(65+oi)+". "+o;}).join("　");
+      h+='<details'+open+'><summary>【'+(q.L||"练")+'】'+esc(q.q)+'<span class="arr">›</span></summary>'+
+        '<div class="in"><p>'+opts+'</p><p><b style="color:#4338ca">答案：'+String.fromCharCode(65+q.a)+'</b>　'+esc(q.ex)+'</p></div></details>';
+    });
+    h+='</section>';n++;
+  }
+  /* 脑图 */
+  if(it.map){
+    h+='<section class="sect"><div class="shead"><span class="num">'+String(n+1).padStart(2,"0")+'</span><h2>本讲复习脑图</h2><span class="hint">点下载 PDF 可随图一起保存</span></div>'+
+      '<div class="mmwrap"><div class="mt">MIND MAP</div>'+mmSvg(it.map)+'</div></section>';
+  }
+  h+='<div class="foot-note" style="text-align:left;padding:14px 2px 0">小苏 · 苏格拉底式伴学 ｜ 内容为近年高考高频考点整理（本地版本，供校对）</div>';
+  return h;
+}
+
+/* ---------- master map ---------- */
+function openMasterMap(){
+  var arr=[{n:"高中生物 · 近年高频考点",c:HZP.map(function(t){return {n:t.title,f:String(t.freqN),c:[{n:t.core1||t.lead.slice(0,14)}]};})}];
+  $("masterMap").innerHTML=mmSvg({n:"近年高考高频考点 12 讲",f:"",c:HZP.map(function(t){return {n:t.title,f:t.freqN+"次",c:(t.mapC||[{n:t.core1||"见本讲精讲"}])};})});
+  $("masterMk").classList.add("on");
+}
+function closeMaster(){$("masterMk").classList.remove("on");}
+$("masterMk").addEventListener("click",function(e){if(e.target.id==="masterMk")closeMaster();});
+
+/* ---------- PDF：一键直接下载（html2canvas 合成；离线自动退回打印） ---------- */
+function svgToPng(svg){
+  return new Promise(function(res){
+    try{
+      var vb=(svg.getAttribute("viewBox")||"0 0 800 500").trim().split(/\s+/).map(parseFloat);
+      var W=vb[2]||800,H=vb[3]||500,ratio=W/H,cw=Math.min(Math.round(W*2),2600),ch=Math.round(cw/ratio);
+      var xml=new XMLSerializer().serializeToString(svg);
+      var b=new Blob(['<?xml version="1.0" encoding="UTF-8"?>'+xml],{type:"image/svg+xml;charset=utf-8"});
+      var u=URL.createObjectURL(b),im=new Image();
+      im.onload=function(){var cv=document.createElement("canvas");cv.width=cw;cv.height=ch;
+        var c=cv.getContext("2d");c.fillStyle="#fff";c.fillRect(0,0,cw,ch);c.drawImage(im,0,0,cw,ch);
+        URL.revokeObjectURL(u);res(cv.toDataURL("image/png"));};
+      im.onerror=function(){URL.revokeObjectURL(u);res(null);};
+      im.src=u;
+    }catch(e){res(null);}
+  });
+}
+function loadLib(url){return new Promise(function(ok){var s=document.createElement("script");
+  s.src=url;s.onload=function(){ok(true);};s.onerror=function(){ok(false);};document.head.appendChild(s);});}
+async function ensurePdfLib(){
+  if(window.html2canvas && (window.jspdf||window.jsPDF)) return true;
+  var a=await loadLib("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js");
+  if(!a) return false;
+  var b=await loadLib("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js");
+  return !!(window.html2canvas&&(window.jspdf||window.jsPDF));
+}
+function fallbackPrint(){
+  var it=byId(curId);
+  var h='<div style="max-width:820px;margin:0 auto;padding:12px 8px"><h1 style="font-size:22px">'+it.title+'</h1>'+
+    '<p style="color:#64748b;font-size:13px">'+it.ch+' · '+it.pos+' · 近5年 '+it.freqN+' 次 · '+it.freq+'</p>'+
+    detailHTML(it,true)+'<p style="margin-top:18px;font-size:11px;color:#94a3b8">小苏 · 苏格拉底式伴学</p></div>';
+  $("printBody").innerHTML=h;document.body.classList.add("printing");window.print();
+  setTimeout(function(){document.body.classList.remove("printing");},400);
+}
+async function exportPdf(id){
+  var it=byId(id);
+  var btn=document.querySelector(".bar-actions .btn.pk"), old=btn?btn.textContent:"";
+  if(btn)btn.textContent="⏳ 正在生成 PDF…";
+  var hasLib=await ensurePdfLib();
+  var stage=$("pdfStage");
+  var cleanup=function(){ document.body.classList.remove("exporting"); stage.style.cssText="display:none"; stage.innerHTML=""; if(btn)btn.textContent=old; };
+  stage.innerHTML='<style>.mmwrap{overflow:visible!important}.mmwrap svg{max-width:none!important}</style>'+
+    '<div style="width:780px;padding:20px 26px;color:#1e293b;font-family:sans-serif">'+
+    '<div style="font-size:24px;font-weight:700">'+it.title+(it.sub?"（"+it.sub+"）":"")+'</div>'+
+    '<div style="font-size:12px;color:#64748b;margin:6px 0 14px">'+it.ch+' · '+it.pos+' · 近5年 '+it.freqN+' 次 · '+it.freq+'</div>'+
+    detailHTML(it,true)+
+    '<div style="margin-top:20px;font-size:11px;color:#94a3b8">小苏 · 苏格拉底式伴学 · 高中生物高频考点整理</div></div>';
+  // 让导出内容进入正常文档流（替换掉当前界面），再截图
+  stage.style.cssText="position:relative;left:auto;top:auto;width:860px;margin:0 auto;display:block";
+  document.body.classList.add("exporting");
+  var svgs=stage.querySelectorAll("svg");
+  for(var i=0;i<svgs.length;i++){
+    var png=await svgToPng(svgs[i]);
+    if(png){var box=svgs[i].closest(".mmwrap"); if(box) box.innerHTML='<img src="'+png+'" style="width:100%;height:auto;display:block"/>';}
+  }
+  await new Promise(function(r){setTimeout(r,180);});
+  if(!hasLib){ cleanup(); fallbackPrint(); return; }
+  try{
+    var JS=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
+    var canvas=await window.html2canvas(stage,{scale:2,backgroundColor:"#ffffff",logging:false,useCORS:true});
+    var imgW=canvas.width, sliceH=Math.floor(imgW*841.89/595.28), pdf=new JS("p","pt","a4"), pos=0, first=true;
+    while(pos<canvas.height){
+      var h=Math.min(sliceH,canvas.height-pos);
+      var pc=document.createElement("canvas");pc.width=imgW;pc.height=h;
+      pc.getContext("2d").drawImage(canvas,0,pos,imgW,h,0,0,imgW,h);
+      if(!first)pdf.addPage(); first=false;
+      pdf.addImage(pc.toDataURL("image/jpeg",0.92),"JPEG",0,0,595.28,595.28*(h/imgW));
+      pos+=h;
+    }
+    pdf.save("小苏-"+it.title+".pdf");
+  }catch(e){ console.warn("pdf err",e); fallbackPrint(); }
+  finally{ cleanup(); }
+}
+window.addEventListener("afterprint",function(){document.body.classList.remove("printing");});
+
+/* init */
+heroStats(); renderF(); renderG();
+</script>
+</body>
+</html>
