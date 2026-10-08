@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>今日复习台 · 小苏</title>
+<link rel="icon" href="data:,">
+<style>
+:root{
+  --bg:#eef0f7; --card:#ffffff; --ink:#1c2340; --ink2:#5a6072; --ink3:#8a94a6;
+  --indigo:#4f46e5; --indigo-soft:#eef2ff; --line:#e7eaf3;
+  --red:#a3372f; --green:#2f7d50; --amber:#f59e0b; --cream:#fbf7ec;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16.5px/1.7 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:960px;margin:0 auto;padding:26px 22px 70px}
+.mono{font-family:var(--mono)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 24px;box-shadow:0 1px 6px rgba(15,23,42,.03)}
+button{font:inherit;cursor:pointer}
+textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:inherit;font-size:15.5px;line-height:1.7;resize:vertical;min-height:180px;background:#fff;color:var(--ink)}
+textarea:focus{outline:none;border-color:var(--indigo)}
+
+/* header */
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+h1{font-size:28px;letter-spacing:.5px}
+.sub{color:var(--ink3);font-size:14px;margin-top:4px}
+
+/* paste area */
+.paste-card{margin-bottom:14px}
+.paste-card textarea{margin-bottom:10px}
+.paste-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:none;border-radius:9px;padding:10px 20px;font-size:15px;font-weight:600}
+.btn.pk{background:var(--indigo);color:#fff}
+.btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink2)}
+.btn.ghost:hover{border-color:var(--indigo);color:var(--indigo)}
+.hint-text{font-size:13px;color:var(--ink3);margin-left:auto}
+
+/* result summary */
+.summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.sum-chip{background:var(--indigo-soft);color:var(--indigo);border-radius:99px;padding:5px 14px;font-size:14px;font-weight:600}
+.sum-chip.warn{background:var(--cream);color:#92600a;border:1px solid #eee3c0}
+
+/* day card */
+.day{margin-bottom:14px;overflow:hidden}
+.day-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.day-label{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--indigo)}
+.day-title{font-size:17.5px;font-weight:600}
+.day-tag{margin-left:auto;font-size:12.5px;color:var(--ink3);background:#f6f8fc;border-radius:6px;padding:3px 10px}
+.plan-quote{font-size:15px;color:var(--ink2);background:#f8f9fe;border-left:3px solid var(--indigo);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:14px;line-height:1.7}
+
+/* section inside day */
+.sec{margin-bottom:12px}
+.sec-t{font-size:14.5px;font-weight:700;color:var(--ink2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.sec-t::before{content:"";width:3px;height:14px;border-radius:2px;background:var(--indigo)}
+.b-list{list-style:none}
+.b-list li{font-size:15px;padding:6px 0 6px 20px;position:relative;border-bottom:1px dashed #eef0f7}
+.b-list li:last-child{border-bottom:none}
+.b-list li::before{content:"";position:absolute;left:4px;top:16px;width:5px;height:5px;border-radius:50%;background:var(--indigo)}
+.trap-list{list-style:none}
+.trap-list li{font-size:14.5px;color:var(--ink2);padding:6px 0 6px 20px;position:relative}
+.trap-list li::before{content:"⚠";position:absolute;left:0;top:6px;font-size:13px}
+
+/* question */
+.q{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px;background:#fff}
+.q-head{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.q-tag{font-size:12px;padding:2px 10px;border-radius:6px;background:#f4f6fa;color:#475569;border:1px solid #e8ebf1}
+.q-tag.src{background:var(--indigo-soft);color:var(--indigo);border-color:var(--indigo-soft)}
+.q-tag.plan{background:var(--cream);color:#92600a;border-color:#eee3c0}
+.q-stem{font-size:15.5px;font-weight:500;margin-bottom:8px}
+.q-opts{display:grid;grid-template-columns:1fr;gap:3px;margin-bottom:10px}
+.q-opt{font-size:14.5px;color:var(--ink2);padding-left:2px}
+.q-opt b{color:var(--indigo);font-weight:700;margin-right:6px}
+.q-ans{border-top:1px dashed var(--line);padding-top:10px;margin-top:10px;font-size:14.5px;color:var(--ink2);display:none}
+.q-ans.show{display:block}
+.q-ans b{color:var(--green)}
+.q-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.abtn{border:1px solid var(--line);background:#fff;font-size:13.5px;color:var(--ink2);padding:5px 13px;border-radius:7px}
+.abtn.primary{border-color:var(--indigo);color:var(--indigo)}
+.abtn:hover{border-color:var(--indigo);color:var(--indigo)}
+.abtn.saved{border-color:var(--green);color:var(--green);background:#f0fdf4}
+
+/* empty / footer */
+.empty{color:var(--ink3);text-align:center;font-size:14.5px;padding:26px 0}
+.loop-tip{background:var(--cream);border:1px solid #eee3c0;color:#92600a;font-size:14px;border-radius:10px;padding:12px 16px;margin-top:18px;line-height:1.8}
+.loop-tip b{color:#7c5a0a}
+/* 导出 PDF 用的屏外容器：留在文档流里（html2canvas 才能渲染），但不占位不可见 */
+.export-host{position:fixed;left:0;top:0;z-index:-1;pointer-events:none}
+@media print{body.exporting .wrap{display:none!important}}
+footer{margin-top:30px;text-align:center;color:var(--ink3);font-size:13.5px;line-height:1.9}
+footer a{color:var(--indigo);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>今日复习台</h1>
+    <div class="sub">粘贴小苏的复习规划（默认 14 天格式，也认别的写法），自动补齐知识点和题目</div>
+  </div>
+</header>
+
+<!-- 粘贴区 -->
+<div class="card paste-card">
+  <textarea id="planInput" placeholder="把小苏复习规划 agent 的回复粘贴进来，标准格式长这样：
+
+📅 你的专属复习计划
+├─ Day0: 弄懂有氧呼吸三阶段的场所和能量变化
+├─ Day1: 重做错题“有氧呼吸场所判断”
+├─ Day3: 做2道变式题（酵母菌/乳酸菌呼吸类型）
+├─ Day7: 做1道综合题（光合+呼吸计算）
+└─ Day14: 回顾自测掌握度
+
+今日变式题：
+【变式1】...
+
+—— 也认这些写法 ——
+10月9日：复习蛋白质的结构
+10月12日：做酶的特性练习题
+每天睡前过一遍今天的笔记"></textarea>
+  <div class="paste-actions">
+    <button class="btn pk" onclick="parsePlan()">解析并生成复习内容</button>
+    <button class="btn ghost" onclick="fillDemo()">没计划？点我看演示</button>
+    <span class="hint-text">标准格式是 Day0/1/3/7/14；写「10月9日：…」或每天一行也认</span>
+  </div>
+</div>
+
+<!-- 解析结果摘要 -->
+<div id="summary" class="summary" style="display:none"></div>
+
+<!-- 按天展示 -->
+<div id="days"></div>
+
+<!-- 闭环提示 -->
+<div id="loopTip" class="loop-tip" style="display:none"></div>
+
+<footer>
+  数据存在本机浏览器 · 与「错题自诊册」「考点雷达」同源互通<br>
+  <a href="../zice/index.html">错题自诊册</a> · <a href="../gk12/index.html">考点雷达</a> · 小苏伴学
+</footer>
+
+</div>
+<!-- 导出 PDF 屏外容器 -->
+<div class="export-host" id="exportHost" aria-hidden="true"></div>
+
+<script src="../gk12/data.js"></script>
+<script src="fxt-questions.js"></script>
+<script>
+/* ================= 工具 ================= */
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function todayStamp(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+var TODAY=todayStamp();
+
+/* ================= KB04 知识点库（必背清单 + 易错提醒 + 节点任务） ================= */
+var KB04={
+ "1.1":{name:"细胞是生命活动的基本单位",book:"必修1",must:[
+  "细胞是生物体结构和功能的基本单位；除病毒外，一切生物体都由细胞构成。",
+  "生命系统结构层次（由小到大）：细胞→组织→器官→系统→个体→种群→群落→生态系统→生物圈。",
+  "细胞是最基本的生命系统，生物圈是最大的生命系统；植物无\"系统\"层次。"
+ ],trap:[
+  "病毒无细胞结构，不属于生命系统，但属于生物。",
+  "种群是同种生物的全部个体；群落是区域内所有生物（含植物、动物、微生物）的总和。",
+  "\"池塘里所有的鱼\"不是种群（鱼有多种），是多个种群。"
+ ]},
+ "1.2":{name:"细胞的多样性和统一性",book:"必修1",must:[
+  "原核细胞：无核膜包被的细胞核（有拟核），无染色体，只有核糖体一种细胞器；代表：细菌、蓝细菌。",
+  "真核细胞：有核膜包被的细胞核和多种细胞器；代表：动物、植物、真菌。",
+  "细胞学说：细胞是有机体，一切动植物由细胞发育而来；新细胞由老细胞分裂产生；揭示生物界的统一性。"
+ ],trap:[
+  "蓝藻（蓝细菌）是原核生物，无叶绿体但含藻蓝素和叶绿素，能进行光合作用。",
+  "原核生物不是没有细胞器，是有核糖体。",
+  "细胞学说只涉及\"动植物\"，不包括病毒。"
+ ]},
+ "2.3":{name:"细胞中的糖类和脂质",book:"必修1",must:[
+  "糖类是主要能源物质；葡萄糖是细胞生命活动的主要能源物质，多糖基本单位都是葡萄糖。",
+  "储能多糖：淀粉（植物）、糖原（动物）；纤维素是植物细胞壁成分，不是储能物质。",
+  "脂质三兄弟：脂肪（储能、保温、缓冲减压）、磷脂（构成膜）、固醇（胆固醇/性激素/维生素D）。"
+ ],trap:[
+  "纤维素不能被人体消化，不提供能量。",
+  "脂肪是主要储能物质，糖类是主要能源物质，二者别混。",
+  "磷脂是细胞膜的主要脂质成分，脂肪不是。"
+ ]},
+ "2.4":{name:"蛋白质是生命活动的主要承担者",book:"必修1",must:[
+  "氨基酸通式：一个中心碳连接氨基、羧基、氢、R基；不同氨基酸区别在R基。",
+  "肽键数＝氨基酸数－肽链数＝脱去水分子数；至少含游离氨基/羧基数＝肽链数。",
+  "蛋白质功能：结构蛋白、催化（酶）、运输（血红蛋白）、调节（胰岛素）、免疫（抗体）。",
+  "蛋白质多样性原因：氨基酸种类、数目、排列顺序不同＋肽链空间结构不同。"
+ ],trap:[
+  "高温变性破坏空间结构，不断肽键，不可逆；水解才断肽键。",
+  "变性后的蛋白质不能恢复原有功能，但氨基酸序列（一级结构）不变。",
+  "\"至少\"的氨基/羧基数等于肽链数，R基上可能还有。"
+ ]},
+ "2.5":{name:"核酸是遗传信息的携带者",book:"必修1",must:[
+  "核酸分DNA和RNA；基本单位是核苷酸（磷酸＋五碳糖＋含氮碱基）。",
+  "DNA特有T和脱氧核糖，一般双链；RNA特有U和核糖，一般单链。",
+  "DNA主要分布在细胞核（线粒体、叶绿体也有），RNA主要分布在细胞质。"
+ ],trap:[
+  "DNA彻底水解产物是磷酸＋脱氧核糖＋碱基（不是核苷酸）。",
+  "病毒只含一种核酸；细胞生物含两种核酸。",
+  "A-T配对、G-C配对（DNA中无U，RNA中无T）。"
+ ]},
+ "3.1":{name:"细胞膜的结构和功能",book:"必修1",must:[
+  "细胞膜功能：分隔内部环境、控制物质进出、进行细胞间信息交流。",
+  "流动镶嵌模型：磷脂双分子层为基本骨架，蛋白质镶嵌或贯穿其中，糖蛋白在外表面。",
+  "结构特点：具有一定的流动性；功能特点：选择透过性。"
+ ],trap:[
+  "基本骨架是磷脂双分子层，不是蛋白质。",
+  "糖蛋白分布在细胞膜外表面，与细胞识别有关。",
+  "细胞膜控制物质进出是相对的（病毒可入侵）。"
+ ]},
+ "3.2":{name:"细胞器之间的分工合作",book:"必修1",must:[
+  "双层膜细胞器：线粒体（有氧呼吸主要场所）、叶绿体（光合作用场所）。",
+  "无膜细胞器：核糖体（蛋白质合成）、中心体（与分裂有关）。",
+  "单层膜细胞器：内质网、高尔基体、溶酶体、液泡。",
+  "分泌蛋白合成路径：核糖体→内质网→高尔基体→细胞膜（线粒体供能）。"
+ ],trap:[
+  "核糖体无膜，不属于生物膜系统。",
+  "动物细胞一般无叶绿体和大液泡；低等植物细胞有中心体。",
+  "原核细胞没有生物膜系统（只有细胞膜）。"
+ ]},
+ "3.3":{name:"细胞核的结构和功能",book:"必修1",must:[
+  "细胞核结构：核膜（双层，有核孔）、染色质（DNA＋蛋白质）、核仁（与核糖体形成有关）。",
+  "染色质与染色体是同一物质在不同时期的不同形态。",
+  "细胞核是遗传信息库，是细胞代谢和遗传的控制中心。"
+ ],trap:[
+  "核孔有选择性，DNA不能随意出核；RNA、蛋白质等可进出。",
+  "代谢的主要场所是细胞质（基质和细胞器），细胞核是\"控制中心\"。",
+  "哺乳动物成熟红细胞无细胞核，仍能存活约120天。"
+ ]},
+ "4.1":{name:"被动运输",book:"必修1",must:[
+  "渗透作用条件：半透膜＋浓度差；水分子从低浓度（水多）向高浓度（水少）扩散。",
+  "原生质层（植物细胞）=细胞膜＋液泡膜＋两膜之间的细胞质，相当于半透膜。",
+  "自由扩散：顺浓度梯度、不需载体、不耗能（O2、CO2、水、甘油、乙醇）。",
+  "协助扩散：顺浓度梯度、需转运蛋白、不耗能（葡萄糖进红细胞、水经水通道蛋白）。"
+ ],trap:[
+  "水分子是\"低浓度→高浓度\"（水多→水少），方向别记反。",
+  "协助扩散不消耗能量（顺浓度梯度，动力来自浓度差）。",
+  "自由扩散不需要载体蛋白。"
+ ]},
+ "4.2":{name:"主动运输与胞吞胞吐",book:"必修1",must:[
+  "主动运输：逆浓度梯度、需载体蛋白、消耗能量；如小肠上皮细胞吸收葡萄糖、氨基酸。",
+  "胞吞胞吐：大分子进出细胞的方式，依赖膜的流动性，消耗能量，不需载体蛋白。",
+  "葡萄糖进红细胞是协助扩散，进小肠上皮细胞是主动运输。"
+ ],trap:[
+  "主动运输与被动运输的根本区别是\"是否逆浓度梯度\"。",
+  "胞吞胞吐针对大分子（如蛋白质），主动运输针对小分子离子。",
+  "胞吞胞吐也要消耗能量。"
+ ]},
+ "5.1":{name:"酶与ATP",book:"必修1",must:[
+  "酶的本质：活细胞产生，有机物（多数蛋白质，少数RNA），催化作用，降低活化能。",
+  "酶的特性：高效性、专一性、作用条件温和（温度/pH影响活性）。",
+  "ATP：A-P~P~P，直接能源，含量少转化快，与ADP快速循环。"
+ ],trap:[
+  "高温使酶变性失活（不可逆），低温抑制（可逆）。",
+  "酶不提供能量，不改变化学平衡点。",
+  "ATP水解掉一个磷酸变成ADP，放能；ADP+Pi+能量→ATP，吸能。"
+ ]},
+ "5.2":{name:"细胞呼吸",book:"必修1",must:[
+  "有氧呼吸三阶段场所：一质（细胞质基质）、二基（线粒体基质）、三内（线粒体内膜）。",
+  "总反应式：C6H12O6 + 6H2O + 6O2 → 6CO2 + 12H2O + 能量。",
+  "无氧呼吸两种类型：酒精发酵（酵母菌、植物）、乳酸发酵（动物、乳酸菌）。",
+  "能量比较：1mol葡萄糖有氧呼吸产30/32ATP，无氧呼吸只产2ATP。",
+  "应用：酿酒（先通气后密封）、稻田排水、破伤风（深伤口缺氧）。"
+ ],trap:[
+  "无氧呼吸只有第一阶段产ATP，第二阶段不产。",
+  "动物无氧呼吸一般产乳酸（不产酒精），植物多数产酒精。",
+  "有氧呼吸和无氧呼吸第一阶段完全相同。"
+ ]},
+ "5.3":{name:"光合作用",book:"必修1",must:[
+  "色素分布：叶绿体类囊体薄膜上；叶绿素主要吸收红光和蓝紫光，类胡萝卜素主要吸收蓝紫光。",
+  "光反应：类囊体薄膜，需光；水光解产生O2和[H]（NADPH），合成ATP。",
+  "暗反应：叶绿体基质，不需光；CO2固定成C3，C3被[H]还原（消耗ATP）。",
+  "总反应式：CO2＋H2O→（光能、叶绿体）（CH2O）＋O2；O2全部来自水的光解。"
+ ],trap:[
+  "暗反应在无光时不能持续进行（需要光反应提供的[H]和ATP）。",
+  "O2来自水（光解），不是来自CO2（可用同位素标记法证明）。",
+  "影响光合速率因素：光照强度、CO2浓度、温度（有最适值，存在饱和点/补偿点）。"
+ ]},
+ "6.1":{name:"细胞的增殖",book:"必修1",must:[
+  "细胞周期＝分裂间期（DNA复制、蛋白质合成）＋分裂期（前中后末）。",
+  "有丝分裂口诀：膜仁消失显两体（前）、形定数清赤道板（中）、粒裂数增均两极（后）、两消两现重开始（末）。",
+  "后期着丝粒分裂、染色体数目加倍；间期DNA加倍（染色体数目不变）。",
+  "动植物区别：纺锤体来源不同（纺锤丝vs星射线）、细胞质分裂方式不同（细胞板vs缢裂）。"
+ ],trap:[
+  "中期染色体数目不是最多，后期着丝粒分裂后数目才加倍。",
+  "赤道板是假想平面，不是真实结构。",
+  "只有连续分裂的细胞才有细胞周期（如神经细胞没有）。"
+ ]},
+ "6.2":{name:"细胞的分化",book:"必修1",must:[
+  "细胞分化：后代细胞在形态、结构和生理功能上发生稳定性差异的过程。",
+  "分化实质：基因的选择性表达（遗传物质不变）。",
+  "分化特点：持久性、稳定性、不可逆性；分化程度越高，全能性越低。",
+  "全能性：细胞含全部遗传信息，有发育成完整个体的潜能；植物细胞易表达，动物细胞核有全能性。"
+ ],trap:[
+  "分化不改变DNA，改变的是基因的表达情况。",
+  "分化一般不可逆；全能性高低与分化程度成反比。",
+  "克隆羊多莉证明的是动物细胞核具有全能性（不是整个细胞）。"
+ ]},
+ "6.3":{name:"细胞的衰老和死亡",book:"必修1",must:[
+  "细胞衰老特征：水分减少、酶活性降低、色素积累、细胞核体积增大、膜通透性改变。",
+  "细胞凋亡：基因决定的细胞自动结束生命的过程（编程性死亡），对生物体有利。",
+  "细胞坏死：不利因素引起的细胞损伤死亡，被动、有害。",
+  "白发原因：酪氨酸酶活性降低，黑色素合成减少。"
+ ],trap:[
+  "细胞衰老≠个体衰老；细胞凋亡≠细胞坏死。",
+  "衰老细胞核体积增大（不是变小），染色质收缩、染色加深。",
+  "凋亡是主动的、基因控制的；坏死是被动的。"
+ ]},
+ "1.1m":{name:"孟德尔的豌豆杂交实验（一）",book:"必修2",must:[
+  "分离定律：形成配子时，成对遗传因子分离，分别进入不同配子；实质是等位基因随同源染色体分开而分离。",
+  "Dd自交：基因型比DD:Dd:dd＝1:2:1，表现型比显:隐＝3:1；测交（Dd×dd）比1:1。",
+  "判断显隐性：纯合亲本杂交，F1表现出的为显性；性状分离中出现的新性状为隐性。"
+ ],trap:[
+  "分离定律发生在减数分裂形成配子时，不是受精过程。",
+  "3:1的显性个体中，纯合子占1/3，杂合子占2/3。",
+  "连续自交可逐代提高纯合子比例（杂合子比例逐代减半）。"
+ ]},
+ "1.2m":{name:"孟德尔的豌豆杂交实验（二）",book:"必修2",must:[
+  "自由组合定律：非同源染色体上的非等位基因自由组合；YyRr产生4种配子，比1:1:1:1。",
+  "双杂合子自交性状分离比9:3:3:1（9双显、3单显、3单显、1双隐）。",
+  "常见变式：9:7（双显才能表现）、9:6:1、12:3:1、1:4:6:4:1。",
+  "解题工具：分解组合法（每对性状分别算，再相乘）。"
+ ],trap:[
+  "只有非同源染色体上的非等位基因才自由组合（连锁基因不适用）。",
+  "9:3:3:1中的\"1\"是双隐性（yyrr），不是纯合显性。",
+  "变式比例是9:3:3:1的合并，如9:7＝9:(3+3+1)。"
+ ]},
+ "2.1m":{name:"减数分裂和受精作用",book:"必修2",must:[
+  "减数分裂：DNA复制一次、细胞连续分裂两次、染色体减半一次（减半发生在减数第一次分裂）。",
+  "减Ⅰ特征：同源染色体联会（四分体）、交叉互换、同源染色体分离、非同源染色体自由组合。",
+  "结果：1个精原细胞→4个精子（均等分裂）；1个卵原细胞→1个卵细胞＋3个极体（不均等分裂）。",
+  "受精作用：精核与卵核融合，染色体恢复体细胞数目，一半来自父方、一半来自母方。"
+ ],trap:[
+  "染色体数目减半在减Ⅰ（同源染色体分离），不是减Ⅱ。",
+  "交叉互换发生在同源染色体的非姐妹染色单体之间。",
+  "卵细胞形成是不均等分裂；极体退化，不参与受精。"
+ ]},
+ "2.3m":{name:"伴性遗传",book:"必修2",must:[
+  "伴X隐性遗传（红绿色盲、血友病）：男性患者多于女性；交叉遗传；女性患者的父亲和儿子一定患病。",
+  "伴X显性遗传（抗维生素D佝偻病）：女性患者多于男性；男性患者的母亲和女儿一定患病。",
+  "伴Y遗传（外耳道多毛症）：只在男性中传递，父传子、子传孙。",
+  "判断口诀：无中生有为隐性，有中生无为显性；隐性看女病，女病男正非伴性。"
+ ],trap:[
+  "男性患者的致病基因（X染色体）来自母亲，只能传给女儿。",
+  "伴X隐性遗传是男性患者多，别与显性搞反。",
+  "Y染色体只有男性有，伴Y遗传无女患者。"
+ ]},
+ "3.1m":{name:"DNA是主要的遗传物质",book:"必修2",must:[
+  "格里菲思实验：证明S型菌存在\"转化因子\"（未证明是DNA）。",
+  "艾弗里实验：DNA才能使R型菌转化为S型菌，DNA酶处理后转化失败→DNA是遗传物质。",
+  "噬菌体侵染实验：35S标记蛋白质（上清液放射性高），32P标记DNA（沉淀物放射性高）→DNA是遗传物质。",
+  "\"主要的\"遗传物质：绝大多数生物的遗传物质是DNA，少数RNA病毒是RNA。"
+ ],trap:[
+  "格里菲思只发现转化因子，艾弗里才证明DNA是遗传物质。",
+  "35S标记蛋白质、32P标记DNA（S是蛋白质特有，P是DNA特有）。",
+  "噬菌体侵染实验只证明噬菌体遗传物质是DNA，不能推出\"主要的\"。"
+ ]},
+ "3.2m":{name:"DNA的结构",book:"必修2",must:[
+  "DNA双螺旋：两条反向平行链，脱氧核糖和磷酸交替连接构成基本骨架（外侧），碱基在内侧。",
+  "碱基配对：A-T（2个氢键）、G-C（3个氢键）；嘌呤总数＝嘧啶总数。",
+  "碱基计算规律：双链中A＝T、G＝C；一条链的A+T比例等于互补链和整个DNA的A+T比例。",
+  "多样性与特异性：碱基排列顺序的千变万化→多样性；特定排列顺序→特异性。"
+ ],trap:[
+  "基本骨架是脱氧核糖和磷酸（不是碱基）。",
+  "DNA中A配T、G配C；U是RNA特有的，DNA无U。",
+  "单链中A不一定等于T，双链中才相等。"
+ ]},
+ "3.3m":{name:"DNA的复制",book:"必修2",must:[
+  "复制方式：半保留复制（每个子代DNA含一条母链、一条新链）。",
+  "复制条件：模板（母链）、原料（4种脱氧核苷酸）、能量（ATP）、酶（解旋酶、DNA聚合酶）。",
+  "复制特点：边解旋边复制、半保留复制、多起点复制。",
+  "意义：将遗传信息从亲代传给子代，保持遗传信息的连续性。"
+ ],trap:[
+  "复制需要的是DNA聚合酶（不是RNA聚合酶）。",
+  "复制结果是\"1变2\"，n次复制后含母链的DNA始终是2个。",
+  "复制需要的原料是脱氧核苷酸，不是核苷酸。"
+ ]}
+};
+
+/* ================= 关键词 → KB04 映射 ================= */
+var KEY_MAP=[
+ {keys:["细胞是生命活动的基本单位","生命系统","种群","群落"],kb:"1.1"},
+ {keys:["细胞的多样性","原核","真核","细胞学说","蓝藻"],kb:"1.2"},
+ {keys:["糖类","脂质","纤维素","储能"],kb:"2.3"},
+ {keys:["蛋白质","氨基酸","肽键"],kb:"2.4"},
+ {keys:["核酸","DNA","RNA","核苷酸"],kb:"2.5"},
+ {keys:["细胞膜","流动镶嵌","糖蛋白"],kb:"3.1"},
+ {keys:["细胞器","线粒体","叶绿体","核糖体","分泌蛋白"],kb:"3.2"},
+ {keys:["细胞核","染色质","核孔"],kb:"3.3"},
+ {keys:["被动运输","渗透","质壁分离","自由扩散","协助扩散"],kb:"4.1"},
+ {keys:["主动运输","胞吞","胞吐"],kb:"4.2"},
+ {keys:["酶","ATP","活化能"],kb:"5.1"},
+ {keys:["细胞呼吸","有氧呼吸","无氧呼吸","线粒体"],kb:"5.2"},
+ {keys:["光合作用","光反应","暗反应","光合速率"],kb:"5.3"},
+ {keys:["有丝分裂","细胞增殖","细胞周期"],kb:"6.1"},
+ {keys:["细胞分化","全能性"],kb:"6.2"},
+ {keys:["细胞衰老","凋亡","坏死"],kb:"6.3"},
+ {keys:["分离定律","孟德尔","豌豆杂交","自交","测交"],kb:"1.1m"},
+ {keys:["自由组合","两对基因","9:3:3:1"],kb:"1.2m"},
+ {keys:["减数分裂","受精作用","同源染色体"],kb:"2.1m"},
+ {keys:["伴性遗传","伴X","系谱","红绿色盲"],kb:"2.3m"},
+ {keys:["DNA是主要的遗传物质","格里菲思","艾弗里","噬菌体"],kb:"3.1m"},
+ {keys:["DNA的结构","双螺旋","碱基配对"],kb:"3.2m"},
+ {keys:["DNA的复制","半保留","碱基计算"],kb:"3.3m"}
+];
+
+/* ================= 考点雷达 → KB04 映射（取题用） ================= */
+var RADAR_BY_KB={
+ "5.2":["aerobic","photo-resp"],
+ "5.3":["photo-steps","photo-factor","photo-resp"],
+ "5.1":["enzyme"],
+ "4.1":["transport"],
+ "4.2":["transport"],
+ "6.1":["mitosis"],
+ "1.1m":["segregation"],
+ "1.2m":["independent"],
+ "2.1m":["meiosis"],
+ "2.3m":["pedigree-sex"],
+ "3.2m":["dna-replication"],
+ "3.3m":["dna-replication"]
+};
+
+/* ================= 错题册 MODULES（写入用） ================= */
+var MODULES=[
+ {id:"M1",name:"必修1 · 分子与细胞",pts:["1.1","1.2","2.1","2.2","2.3","2.4","2.5","3.1","3.2","3.3","4.1","4.2","5.1","5.2","5.3","6.1","6.2"]},
+ {id:"M2",name:"必修2 · 遗传与进化",pts:["1.1","1.2","2.1","2.2","2.3","3.1","3.2","3.3"]}
+];
+var MOD_BY_KB={};
+KB04&&Object.keys(KB04).forEach(function(k){
+ var mod=k.endsWith("m")?"M2":"M1";
+ var code=k.replace("m","");
+ MOD_BY_KB[k]={mod:mod,pt:code};
+});
+/* 长关键词优先，避免短词（如"细胞"）抢先命中 */
+KEY_MAP.forEach(function(km){
+ km.keys.sort(function(a,b){return b.length-a.length;});
+});
+
+/* ================= 状态 ================= */
+var parsed=null;
+var savedIds={};
+try{var s=localStorage.getItem("fxt_saved_"+TODAY);if(s)savedIds=JSON.parse(s)||{};}catch(e){}
+
+/* ================= 解析规划 ================= */
+function detectKB(text){
+ var lower=text;
+ for(var i=0;i<KEY_MAP.length;i++){
+  var km=KEY_MAP[i];
+  for(var j=0;j<km.keys.length;j++){
+   if(lower.indexOf(km.keys[j])!==-1)return km.kb;
+  }
+ }
+ return null;
+}
+function parsePlan(){
+ var text=$("planInput").value.trim();
+ if(!text){alert("先把小苏的复习规划粘贴进来");return;}
+ var lines=text.split(/\n/);
+ var days={};
+ var order=[];
+ var variantQs=[];
+ var curDay=null;
+ function addDay(lbl,raw){
+  if(!days[lbl]){days[lbl]={raw:raw,kb:detectKB(raw)};order.push(lbl);}
+  else{days[lbl].raw+="；"+raw;if(!days[lbl].kb)days[lbl].kb=detectKB(days[lbl].raw);}
+ }
+ for(var i=0;i<lines.length;i++){
+  var L=lines[i].trim();
+  var m=L.match(/Day\s*(\d+)\s*[:：]\s*(.+)/i);
+  if(m){curDay="Day"+m[1];addDay(curDay,m[2].trim());continue;}
+  var dt=L.match(/^\s*((?:\d{4}[-年\/])?\d{1,2}[-月\/]\d{1,2}日?)\s*[:：]?\s*(.+)/);
+  if(dt){curDay=dt[1];addDay(curDay,dt[2].trim());continue;}
+  var v=L.match(/【变式\s*\d+】\s*(.+)/);
+  if(v){variantQs.push({stem:v[1].trim(),hint:""});continue;}
+  var h=L.match(/【思路提示】\s*(.+)/);
+  if(h&&variantQs.length){variantQs[variantQs.length-1].hint=h[1].trim();continue;}
+  if(!L)continue;
+  if(L.indexOf("复习计划")!==-1||L.indexOf("变式题")!==-1)continue; /* 标题行跳过 */
+  if(curDay){days[curDay].raw+="；"+L;if(!days[curDay].kb)days[curDay].kb=detectKB(days[curDay].raw);}
+  else{curDay="其他";addDay("其他",L);}
+ }
+ if(!order.length){alert("没认出来内容——直接粘贴每天的复习安排就行，比如：\nDay0: 复习细胞呼吸\n或\n10月9日：复习蛋白质");return;}
+ var kbSet={};
+ order.forEach(function(d){if(days[d].kb)kbSet[days[d].kb]=true;});
+ parsed={days:days,order:order,variantQs:variantQs,kbs:Object.keys(kbSet)};
+ renderAll();
+}
+
+/* ================= 演示数据 ================= */
+function fillDemo(){
+ $("planInput").value=
+ "📅 你的专属复习计划\n"+
+ "├─ Day0: 弄懂有氧呼吸三阶段的场所、反应物和能量变化，完成1道基础题\n"+
+ "├─ Day1: 重做错题\"有氧呼吸场所判断\"，不看答案口述各阶段产物\n"+
+ "├─ Day3: 做2道变式题（酵母菌无氧呼吸/乳酸菌发酵）\n"+
+ "├─ Day7: 做1道跨点综合题（光合作用与呼吸作用综合计算）\n"+
+ "└─ Day14: 快速回顾细胞呼吸与光合作用，自测掌握度\n\n"+
+ "今日变式题：\n"+
+ "【变式1】酵母菌在无氧条件下进行发酵，产物是？\n"+
+ "【思路提示】回想无氧呼吸的两种类型，酵母菌属于哪一种？";
+ parsePlan();
+}
+
+/* ================= 取题 ================= */
+function getQuestions(kb){
+ var radarIds=RADAR_BY_KB[kb]||[];
+ var out=[];
+ radarIds.forEach(function(rid){
+  var item=window.HZP&&window.HZP.find(function(x){return x.id===rid;});
+  if(!item)return;
+  (item.quiz||[]).forEach(function(q,qi){
+   out.push({src:"radar",srcName:item.title,level:q.L,stem:q.q,opts:q.o,ans:String.fromCharCode(65+q.a),ex:q.ex,kb:kb});
+  });
+  (item.traps||[]).forEach(function(t){
+   out.push({src:"trap",srcName:item.title,level:"辨析",stem:t.t,opts:null,ans:t.a,ex:t.why,kb:kb});
+  });
+ });
+ /* 雷达没覆盖的小节 → 回落到内置补充题库（fxt-questions.js） */
+ if(!out.length&&window.FXT_EXTRA&&FXT_EXTRA[kb]){
+  var fx=FXT_EXTRA[kb];
+  (fx.quiz||[]).forEach(function(q){
+   out.push({src:"extra",srcName:"配套练习",level:q.L,stem:q.q,opts:q.o,ans:String.fromCharCode(65+q.a),ex:q.ex,kb:kb});
+  });
+  (fx.traps||[]).forEach(function(t){
+   out.push({src:"extra",srcName:"配套练习",level:"辨析",stem:t.t,opts:null,ans:t.a,ex:t.why,kb:kb});
+  });
+ }
+ return out;
+}
+
+/* ================= 渲染 ================= */
+function renderAll(){
+ if(!parsed)return;
+ /* summary */
+ var sum=$("summary");sum.style.display="flex";
+ var totalQ=0;
+ parsed.kbs.forEach(function(kb){totalQ+=getQuestions(kb).length;});
+ var h='<span class="sum-chip">识别到 '+parsed.kbs.length+' 个考点</span>'+
+       '<span class="sum-chip">'+parsed.kbs.map(function(k){return KB04[k]?KB04[k].name:k;}).join(" · ")+'</span>'+
+       '<span class="sum-chip">配套 '+totalQ+' 道题</span>';
+ if(parsed.variantQs.length)h+='<span class="sum-chip warn">规划附 '+parsed.variantQs.length+' 道变式题</span>';
+ sum.innerHTML=h;
+
+ /* days */
+ var order=parsed.order||["Day0","Day1","Day3","Day7","Day14"];
+ var dh="";
+ order.forEach(function(dk){
+  var d=parsed.days[dk];
+  if(!d)return;
+  var kb=d.kb?KB04[d.kb]:null;
+  var qs=d.kb?getQuestions(d.kb):[];
+  dh+='<div class="card day">'+
+   '<div class="day-head"><span class="day-label">'+dk+'</span>'+
+   '<span class="day-title">'+(kb?esc(kb.name):"")+'</span>'+
+   '<button class="abtn primary" style="margin-left:auto" onclick="exportDay(\''+dk+'\')">⬇ 导出 PDF</button>'+
+   '<span class="day-tag" style="margin-left:0">'+(kb?esc(kb.book):"")+'</span></div>'+
+   '<div class="plan-quote">'+esc(d.raw)+'</div>';
+  if(kb){
+   dh+='<div class="sec"><div class="sec-t">📖 必背清单 <button class="abtn" style="margin-left:auto" onclick="copyText(\''+dk+'-must\')">复制</button></div><ul class="b-list" id="'+dk+'-must">';
+   kb.must.forEach(function(m){dh+='<li>'+esc(m)+'</li>';});
+   dh+='</ul></div>';
+   dh+='<div class="sec"><div class="sec-t">⚠️ 易错提醒 <button class="abtn" style="margin-left:auto" onclick="copyText(\''+dk+'-trap\')">复制</button></div><ul class="trap-list" id="'+dk+'-trap">';
+   kb.trap.forEach(function(t){dh+='<li>'+esc(t)+'</li>';});
+   dh+='</ul></div>';
+  }
+  if(qs.length){
+   dh+='<div class="sec"><div class="sec-t">✏️ 配套题目</div>';
+   qs.forEach(function(q,qi){
+    var qid=dk+"-"+qi;
+    var saved=savedIds[qid];
+    dh+='<div class="q">'+
+     '<div class="q-head"><span class="q-tag src">'+esc(q.srcName)+'</span><span class="q-tag">'+esc(q.level)+'</span></div>'+
+     '<div class="q-stem">'+esc(q.stem)+'</div>';
+    if(q.opts){
+     dh+='<div class="q-opts">';
+     q.opts.forEach(function(o,oi){dh+='<div class="q-opt"><b>'+String.fromCharCode(65+oi)+'</b>'+esc(o)+'</div>';});
+     dh+='</div>';
+    }
+    dh+='<div class="q-ans" id="ans-'+qid+'">'+esc(q.ans)+(q.ex?'<br><span style="color:var(--ink3)">'+esc(q.ex)+'</span>':"")+'</div>'+
+     '<div class="q-actions">'+
+      '<button class="abtn" onclick="toggleAns(\''+qid+'\')">看答案</button>'+
+      '<button class="abtn" onclick="copyQ(\''+qid+'\')">复制题目</button>'+
+      '<button class="abtn '+(saved?"saved":"")+'" id="save-'+qid+'" onclick="saveToBook(\''+qid+'\',\''+q.kb+'\',this)">'+(saved?"已存入错题册":"存入错题册")+'</button>'+
+     '</div></div>';
+   });
+   dh+='</div>';
+  }else if(kb){
+   dh+='<div class="sec"><div class="sec-t">✏️ 配套题目</div><div class="empty" style="padding:14px">本节暂无配套题，先去考点雷达看精讲</div></div>';
+  }
+  dh+='</div>';
+ });
+
+ /* variant questions */
+ if(parsed.variantQs.length){
+  dh+='<div class="card day"><div class="day-head"><span class="day-label">今日</span><span class="day-title">规划附赠变式题</span><button class="abtn primary" style="margin-left:auto" onclick="exportVariants()">⬇ 导出 PDF</button><span class="day-tag" style="margin-left:0">来自小苏</span></div>';
+  parsed.variantQs.forEach(function(v,vi){
+   var qid="variant-"+vi;
+   var saved=savedIds[qid];
+   dh+='<div class="q"><div class="q-head"><span class="q-tag plan">规划变式</span></div>'+
+    '<div class="q-stem">'+esc(v.stem)+'</div>'+
+    (v.hint?'<div style="font-size:14.5px;color:var(--ink2);margin-bottom:8px">💡 '+esc(v.hint)+'</div>':"")+
+    '<div class="q-actions"><button class="abtn" onclick="copyQ(\''+qid+'\')">复制题目</button>'+
+    '<button class="abtn '+(saved?"saved":"")+'" id="save-'+qid+'" onclick="saveVariant(\''+qid+'\',this)">'+(saved?"已存入错题册":"存入错题册")+'</button></div></div>';
+  });
+  dh+='</div>';
+ }
+
+ $("days").innerHTML=dh;
+
+ /* loop tip */
+ var tip=$("loopTip");tip.style.display="block";
+ var savedN=Object.keys(savedIds).length;
+ tip.innerHTML='<b>闭环提示</b>：已存 '+savedN+' 道题到错题册（今天）<br>存入后打开「错题自诊册」→ 今日复习，Day0 就能看见它，之后按 Day1 / Day3 / Day7 / Day14 自动排期。';
+}
+
+/* ================= 交互 ================= */
+function toggleAns(qid){$("ans-"+qid).classList.toggle("show");}
+function copyText(id){
+ var el=$(id);if(!el)return;
+ var t=el.innerText;
+ doCopy(t);
+}
+function copyQ(qid){
+ var qEl=$("save-"+qid)?$("save-"+qid).closest(".q"):null;
+ if(!qEl)return;
+ var t=qEl.querySelector(".q-stem").innerText;
+ var opts=qEl.querySelectorAll(".q-opt");
+ if(opts.length){t+="\n";opts.forEach(function(o){t+=o.innerText+"\n";});}
+ var ans=qEl.querySelector(".q-ans");
+ if(ans)t+="\n答案："+ans.innerText;
+ doCopy(t);
+}
+function doCopy(text){
+ if(navigator.clipboard&&navigator.clipboard.writeText){
+  navigator.clipboard.writeText(text).then(function(){toast("已复制");},function(){fallbackCopy(text);});
+ }else fallbackCopy(text);
+}
+function fallbackCopy(text){
+ var ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();
+ try{document.execCommand("copy");toast("已复制");}catch(e){toast("复制失败，请手动选择");}
+ document.body.removeChild(ta);
+}
+function toast(msg){
+ var t=document.createElement("div");
+ t.style.cssText="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;z-index:99";
+ t.textContent=msg;document.body.appendChild(t);
+ setTimeout(function(){t.remove();},1600);
+}
+
+/* ================= 存入错题册 ================= */
+function saveToBook(qid,kb,btn){
+ if(savedIds[qid])return;
+ var qEl=btn.closest(".q");
+ var stem=qEl.querySelector(".q-stem").innerText;
+ var opts=[];qEl.querySelectorAll(".q-opt").forEach(function(o){opts.push(o.innerText.replace(/^[A-D]\s*/,""));});
+ var ansEl=qEl.querySelector(".q-ans");
+ var ans="";var ex="";
+ if(ansEl){
+  var parts=ansEl.innerText.split("\n");
+  ans=parts[0]||"";
+  ex=parts.slice(1).join("\n")||ans; /* 没拆出解析时兜底留全文 */
+  if(opts.length){ /* 单选题：答案只要选项字母，解析才是后面那句 */
+   var mLet=ans.match(/^([A-D])\b/);
+   if(mLet){ans=mLet[1];ex=ex===ans?parts.slice(1).join("\n"):ex;}
+  }
+ }
+ var map=MOD_BY_KB[kb]||{mod:"M1",pt:"5.2"};
+ var type=opts.length>=3?"单选题":"概念辨析题";
+ var record={
+  id:Date.now(),
+  kpt:KB04[kb]?KB04[kb].name:kb,
+  type:type,
+  mod:map.mod,
+  stem:stem,
+  opts:opts.length?opts:null,
+  mine:"",
+  ok:ans,
+  ans:ex,
+  why:"知识性",
+  lv:0,
+  stage:0,
+  sched:0
+ };
+ pushToBook(record);
+ savedIds[qid]=true;
+ localStorage.setItem("fxt_saved_"+TODAY,JSON.stringify(savedIds));
+ btn.textContent="已存入错题册";btn.classList.add("saved");
+ toast("已存入错题册");
+ renderLoopTip();
+}
+function saveVariant(qid,btn){
+ if(savedIds[qid])return;
+ var qEl=btn.closest(".q");
+ var stem=qEl.querySelector(".q-stem").innerText;
+ var record={
+  id:Date.now(),
+  kpt:"复习规划变式",
+  type:"概念辨析题",
+  mod:"M1",
+  stem:stem,
+  opts:null,
+  mine:"",
+  ok:"",
+  ans:"来自小苏复习规划的变式题",
+  why:"理解性",
+  lv:0,
+  stage:0,
+  sched:0
+ };
+ pushToBook(record);
+ savedIds[qid]=true;
+ localStorage.setItem("fxt_saved_"+TODAY,JSON.stringify(savedIds));
+ btn.textContent="已存入错题册";btn.classList.add("saved");
+ toast("已存入错题册");
+ renderLoopTip();
+}
+function pushToBook(rec){
+ var book=[];
+ try{var s=localStorage.getItem("zcd_v1");if(s)book=JSON.parse(s)||[];}catch(e){}
+ book.push(rec);
+ localStorage.setItem("zcd_v1",JSON.stringify(book));
+}
+function renderLoopTip(){
+ var tip=$("loopTip");
+ var savedN=Object.keys(savedIds).length;
+ tip.innerHTML='<b>闭环提示</b>：已存 '+savedN+' 道题到错题册（今天）<br>存入后打开「错题自诊册」→ 今日复习，Day0 就能看见它，之后按 Day1 / Day3 / Day7 / Day14 自动排期。';
+}
+
+/* ================= 导出 PDF（与错题自诊册同一套：html2canvas + jsPDF） ================= */
+function ensurePdfLib(){
+ return new Promise(function(res){
+  function load(u,cb){var s=document.createElement("script");s.src=u;
+   s.onload=function(){cb(true);};s.onerror=function(){cb(false);};document.head.appendChild(s);}
+  if(window.html2canvas&&(window.jspdf||window.jsPDF))return res(true);
+  load("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",function(a){
+   if(!a)return res(false);
+   load("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",function(b){
+    res(!!(window.html2canvas&&(window.jspdf||window.jsPDF)));
+   });
+  });
+ });
+}
+function exportQHtml(q,i){
+ var h='<div style="border-top:1px solid #eceef5;padding:10px 2px">'+
+  '<div style="font-size:12px;color:#5a6072">'+esc(q.srcName)+' · '+esc(q.level)+'</div>'+
+  '<div style="font-size:13.5px;margin:4px 0">'+(i+1)+". "+esc(q.stem)+'</div>';
+ if(q.opts&&q.opts.length){
+  h+='<div style="margin:4px 0 2px;font-size:12.5px;color:#334155">'+
+   q.opts.map(function(o,j){return '<div>'+String.fromCharCode(65+j)+'. '+esc(o)+'</div>';}).join("")+'</div>';
+ }
+ if(q.hint)h+='<div style="font-size:12.5px;color:#7a6a2f;margin:2px 0">💡 '+esc(q.hint)+'</div>';
+ h+='<div style="font-size:12.5px;margin-top:5px;background:#f6f8fc;border-radius:7px;padding:7px 10px"><b>答案：</b>'+esc(q.ans)+
+  (q.ex?'<br><span style="color:#5a6072">'+esc(q.ex)+'</span>':"")+'</div></div>';
+ return h;
+}
+function exportDay(dk){
+ var d=parsed&&parsed.days?parsed.days[dk]:null;
+ if(!d)return;
+ var kb=d.kb?KB04[d.kb]:null;
+ var qs=d.kb?getQuestions(d.kb):[];
+ var title=dk+(kb?" · "+kb.name:"");
+ var h='<div style="font-size:20px;font-weight:700">今日复习台 · '+esc(title)+'</div>'+
+  '<div style="color:#8a94a6;font-size:12px;margin:4px 0 14px">'+(kb?esc(kb.book)+" · ":"")+
+  '必背 '+(kb?kb.must.length:0)+' 条 · 易错 '+(kb?kb.trap.length:0)+' 条 · 题目 '+qs.length+' 道 · 生成于 '+TODAY+'</div>'+
+  '<div style="font-size:13px;color:#3c4562;background:#f8f9fe;border-left:3px solid #4f46e5;border-radius:0 8px 8px 0;padding:8px 12px;margin-bottom:12px">'+esc(d.raw)+'</div>';
+ if(kb){
+  h+='<div style="font-size:14px;font-weight:700;color:#3c4562;margin:12px 0 6px">📖 必背清单</div>'+
+   '<div style="font-size:13px;line-height:1.9">'+kb.must.map(function(m,i){return '<div>'+(i+1)+'. '+esc(m)+'</div>';}).join("")+'</div>'+
+   '<div style="font-size:14px;font-weight:700;color:#3c4562;margin:12px 0 6px">⚠️ 易错提醒</div>'+
+   '<div style="font-size:13px;line-height:1.9">'+kb.trap.map(function(t){return '<div>⚠ '+esc(t)+'</div>';}).join("")+'</div>';
+ }
+ if(qs.length){
+  h+='<div style="font-size:14px;font-weight:700;color:#3c4562;margin:12px 0 6px">✏️ 配套题目（'+qs.length+' 道，含答案解析）</div>';
+  qs.forEach(function(q,i){h+=exportQHtml(q,i);});
+ }else if(kb){
+  h+='<div style="font-size:14px;font-weight:700;color:#3c4562;margin:12px 0 6px">✏️ 配套题目</div>'+
+   '<div style="font-size:13px;color:#8a94a6">本节暂无配套题，先去考点雷达看精讲</div>';
+ }
+ h+='<div style="margin-top:14px;font-size:11px;color:#a8aebe">小苏 · 今日复习台 · 与错题自诊册同源互通</div>';
+ exportStage(title,h);
+}
+function exportVariants(){
+ var vqs=(parsed&&parsed.variantQs)||[];
+ if(!vqs.length)return;
+ var h='<div style="font-size:20px;font-weight:700">今日复习台 · 规划附赠变式题</div>'+
+  '<div style="color:#8a94a6;font-size:12px;margin:4px 0 14px">共 '+vqs.length+' 道 · 来自小苏复习规划 · 生成于 '+TODAY+'</div>';
+ vqs.forEach(function(v,i){
+  h+='<div style="border-top:1px solid #eceef5;padding:10px 2px">'+
+   '<div style="font-size:12px;color:#5a6072">规划变式</div>'+
+   '<div style="font-size:13.5px;margin:4px 0">'+(i+1)+". "+esc(v.stem)+'</div>'+
+   (v.hint?'<div style="font-size:12.5px;margin-top:5px;background:#f6f8fc;border-radius:7px;padding:7px 10px"><b>思路提示：</b>'+esc(v.hint)+'</div>':"")+
+   '</div>';
+ });
+ h+='<div style="margin-top:14px;font-size:11px;color:#a8aebe">小苏 · 今日复习台 · 与错题自诊册同源互通</div>';
+ exportStage("规划变式题",h);
+}
+async function exportStage(title,html){
+ var host=$("exportHost");
+ host.innerHTML="";
+ var stage=document.createElement("div");
+ stage.style.cssText="position:relative;width:780px;padding:20px 24px;background:#fff;color:#1e293b;font-family:sans-serif";
+ stage.innerHTML=html;
+ host.appendChild(stage);
+ document.body.classList.add("exporting");
+ await new Promise(function(r){setTimeout(r,150);});
+ function cleanup(){
+  document.body.classList.remove("exporting");
+  host.innerHTML="";
+ }
+ var ok=await ensurePdfLib();
+ if(!ok){cleanup();alert("未联网暂时不能直接生成 PDF；可按 Ctrl+P → 目标选「另存为 PDF」");return;}
+ try{
+  var canvas=await window.html2canvas(stage,{scale:2,backgroundColor:"#ffffff",logging:false,useCORS:true});
+  var JS=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
+  var imgW=canvas.width,sliceH=Math.floor(imgW*841.89/595.28),pdf=new JS("p","pt","a4"),pos=0,first=true;
+  while(pos<canvas.height){
+   var hgt=Math.min(sliceH,canvas.height-pos);
+   var pc=document.createElement("canvas");pc.width=imgW;pc.height=hgt;
+   pc.getContext("2d").drawImage(canvas,0,pos,imgW,hgt,0,0,imgW,hgt);
+   if(!first)pdf.addPage();first=false;
+   pdf.addImage(pc.toDataURL("image/jpeg",0.92),"JPEG",0,0,595.28,595.28*(hgt/imgW));
+   pos+=hgt;
+  }
+  pdf.save("复习台-"+title+".pdf");
+  toast("已导出 PDF");
+ }catch(e){console.warn("export err",e);alert("生成失败；可按 Ctrl+P → 另存为 PDF");}
+ finally{cleanup();}
+}
+</script>
+</body>
+</html>
